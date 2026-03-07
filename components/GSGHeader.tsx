@@ -262,7 +262,7 @@ export default function GSGHeader() {
                 <i className="ri-flashlight-fill" />
                 Sole Express
               </Link>
-              <a href="https://shopper.gsgbrands.com.gh" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-medium text-orange-500 hover:text-orange-600">
+              <a href={process.env.NEXT_PUBLIC_SITE_SHOPPER_URL || 'https://shopper.gsgbrands.com.gh'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-medium text-orange-500 hover:text-orange-600">
                 <i className="ri-vip-crown-fill" />
                 Personal Shopper
               </a>

@@ -7,7 +7,35 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+    const hostname = request.headers.get('host') || '';
     const response = NextResponse.next();
+
+    // ============================================================
+    // Host-based routing for Shopper Subdomain
+    // ============================================================
+    // If we are on the shopper subdomain, we want to rewrite requests to the /shopper route group
+    // Example: shopper.gsgbrands.com.gh/ -> /shopper
+    // Example: shopper.gsgbrands.com.gh/how-it-works -> /shopper/how-it-works
+    const isShopperDomain = hostname.startsWith('shopper.');
+
+    // We don't want to rewrite API routes, admin routes, or static files
+    const isApiRoute = pathname.startsWith('/api/');
+    const isAdminRoute = pathname.startsWith('/admin');
+    const isStaticFile = pathname.startsWith('/_next') || pathname.includes('.');
+
+    if (isShopperDomain && !isApiRoute && !isAdminRoute && !isStaticFile) {
+        // If the path doesn't already start with /shopper, rewrite it
+        if (!pathname.startsWith('/shopper')) {
+            const newUrl = new URL(`/shopper${pathname === '/' ? '' : pathname}`, request.url);
+            return NextResponse.rewrite(newUrl);
+        }
+    }
+
+    // Prevent goods domain from accessing /shopper directly (optional, but good for SEO)
+    if (!isShopperDomain && pathname.startsWith('/shopper') && !isApiRoute && !isAdminRoute && !isStaticFile) {
+        const newUrl = new URL(pathname.replace('/shopper', '') || '/', request.url);
+        return NextResponse.redirect(newUrl);
+    }
 
     // ============================================================
     // Security headers for ALL routes
@@ -125,7 +153,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/admin/:path*',
-        '/api/:path*',
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - public files
+         */
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 };

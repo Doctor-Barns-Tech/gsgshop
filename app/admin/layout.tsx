@@ -157,6 +157,11 @@ export default function AdminLayout({
       badge: ''
     },
     {
+      title: 'Personal Shopper',
+      icon: 'ri-shopping-basket-line',
+      path: '/admin/shopper'
+    },
+    {
       title: 'POS System',
       icon: 'ri-store-3-line',
       path: '/admin/pos'
