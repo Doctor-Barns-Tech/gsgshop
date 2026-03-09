@@ -31,11 +31,8 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // Prevent goods domain from accessing /shopper directly (optional, but good for SEO)
-    if (!isShopperDomain && pathname.startsWith('/shopper') && !isApiRoute && !isAdminRoute && !isStaticFile) {
-        const newUrl = new URL(pathname.replace('/shopper', '') || '/', request.url);
-        return NextResponse.redirect(newUrl);
-    }
+    // /shopper is accessible on ALL domains (localhost, Vercel, etc.) until subdomain is configured.
+    // Later: optionally redirect /shopper to subdomain when both domains are live.
 
     // ============================================================
     // Security headers for ALL routes
