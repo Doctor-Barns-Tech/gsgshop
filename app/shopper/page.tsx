@@ -5,13 +5,20 @@ export default function ShopperHome() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative bg-gsg-purple overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-gsg-purple/90 to-gsg-purple"></div>
-        {/* Abstract Shapes */}
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-bl from-white/10 to-transparent rounded-bl-[100px] -z-0"></div>
-        <div className="absolute bottom-0 left-0 w-1/4 h-1/2 bg-gradient-to-tr from-black/10 to-transparent rounded-tr-[100px] -z-0"></div>
+      <section className="relative bg-gsg-purple overflow-hidden min-h-[480px] md:min-h-[560px]">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1920&auto=format&fit=crop"
+            alt=""
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        </div>
+        {/* Overlay - 20% */}
+        <div className="absolute inset-0 bg-gsg-purple/20 z-[1]"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-center z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium mb-8 animate-fade-in-up">
