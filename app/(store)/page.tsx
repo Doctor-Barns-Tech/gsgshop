@@ -264,7 +264,7 @@ export default function Home() {
               </div>
             </Link>
             
-            <a href="https://shopper.gsgbrands.com.gh" target="_blank" rel="noopener noreferrer" className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all">
+            <Link href="/shopper" className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all block">
               <div className="absolute inset-0 bg-orange-50 group-hover:scale-105 transition-transform duration-500">
                 <Image 
                   src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" 
@@ -278,7 +278,7 @@ export default function Home() {
               <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
                 <p className="font-bold text-white text-center">Personal Shopper</p>
               </div>
-            </a>
+            </Link>
 
             {showMainGoods.slice(0, 10).map((cat) => (
               <Link key={cat.id} href={`/shop?category=${cat.slug}`} className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all">

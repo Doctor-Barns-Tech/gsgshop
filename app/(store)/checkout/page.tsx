@@ -45,7 +45,7 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<any>({});
 
   const deliveryOptionsList = [
-    { value: 'personal-shopper', label: 'Add To My Personal Shopper', desc: 'Send your list to your personal shopper.', href: 'https://shopper.gsgbrands.com.gh' },
+    { value: 'personal-shopper', label: 'Add To My Personal Shopper', desc: 'Send your list to your personal shopper.', href: '/shopper/shopping-list' },
     { value: 'free-delivery', label: 'Free Delivery (Tue/Fri)', desc: 'Tue/Fri only. Min 5% discount as Free Delivery Discount. Confirmed before noon of preceding day.', href: null },
     { value: 'sole-express', label: 'Sole Express Delivery (Daily)', desc: 'Fresh/perishable must use Express. 2hr, 6hr, 12hr, 24hr or 48hr after confirmation.', href: null },
     { value: 'joint-express', label: 'Joint Express – Myself & Neighbor (Daily)', desc: 'Share delivery fee with neighbor; items stay private. Same perishable rule. 2hr–48hr slots.', href: null },
@@ -568,7 +568,7 @@ export default function CheckoutPage() {
                   {deliveryMethod === 'personal-shopper' && (
                     <p className="mt-4 text-sm text-gray-600 bg-blue-50 p-4 rounded-xl border border-blue-100">
                       <i className="ri-information-fill text-blue-500 mr-1"></i>
-                      <a href="https://shopper.gsgbrands.com.gh" target="_blank" rel="noopener noreferrer" className="text-blue-700 font-bold hover:underline">Go to My Personal Shopper</a> to add items to your list.
+                      <a href="/shopper/shopping-list" className="text-blue-700 font-bold hover:underline">Go to My Personal Shopper</a> to add items to your list.
                     </p>
                   )}
 
