@@ -1,5 +1,5 @@
 import ShopperHeader from '@/components/ShopperHeader';
-import Footer from '@/components/Footer';
+import GSGFooter from '@/components/GSGFooter';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function ShopperLayout({
       <main className="flex-grow">
         {children}
       </main>
-      <Footer />
+      <GSGFooter />
     </div>
   );
 }
