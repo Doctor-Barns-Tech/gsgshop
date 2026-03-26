@@ -113,7 +113,7 @@ export default function CookiesPage() {
                   </div>
                   <div>
                     <p className="font-bold text-gsg-black text-lg">Email</p>
-                    <a href="mailto:support@gsgbrands.com.gh" className="text-gsg-purple hover:underline font-medium">support@gsgbrands.com.gh</a>
+                    <a href="mailto:info@gsgbrands.com.gh" className="text-gsg-purple hover:underline font-medium">info@gsgbrands.com.gh</a>
                   </div>
                 </div>
               </div>

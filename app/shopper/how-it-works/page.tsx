@@ -15,7 +15,7 @@ export default function HowItWorks() {
               <div>
                 <h3 className="text-2xl font-bold text-gsg-black mb-3">Create Your List</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Navigate to the <a href="/shopping-list" className="text-gsg-purple font-bold hover:underline">Shopping List</a> page. Add the items you need, specifying the brand, quantity, and your estimated price. For produce, you can even specify the source (Local Market, Imported, or Controlled Environment).
+                  Navigate to the <a href="/shopper/shopping-list" className="text-gsg-purple font-bold hover:underline">Shopping List</a> page. Add the items you need, specifying the brand, quantity, and your estimated price. For produce, you can even specify the source (Local Market, Imported, or Controlled Environment).
                 </p>
               </div>
             </div>
@@ -35,7 +35,7 @@ export default function HowItWorks() {
               <div>
                 <h3 className="text-2xl font-bold text-gsg-black mb-3">Transparent Fees</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  We charge a flat <strong>5% commission</strong> on the subtotal of your items. A delivery fee is calculated based on the distance to your location. In rare cases, a small sourcing fee may apply if items require extensive travel to find, but this will always be agreed upon with you first.
+                  We charge a flat <strong>5% commission or less</strong> on the subtotal of your items. A delivery fee is calculated based on the distance to your location. In rare cases, a small sourcing fee may apply if items require extensive travel to find, but this will always be agreed upon with you first.
                 </p>
               </div>
             </div>

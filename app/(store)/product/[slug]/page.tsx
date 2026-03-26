@@ -44,16 +44,16 @@ export async function generateMetadata(
 
   return {
     title: product.name,
-    description: product.description?.substring(0, 160) || `Buy ${product.name} at GSG Convenience Goods.`,
+    description: product.description?.substring(0, 160) || `Buy ${product.name} at GSG Convenience Goods & More.`,
     openGraph: {
       title: product.name,
-      description: product.description?.substring(0, 160) || `Buy ${product.name} at GSG Convenience Goods.`,
+      description: product.description?.substring(0, 160) || `Buy ${product.name} at GSG Convenience Goods & More.`,
       images: mainImage ? [{ url: mainImage }] : [],
     },
     twitter: {
       card: 'summary_large_image',
       title: product.name,
-      description: product.description?.substring(0, 160) || `Buy ${product.name} at GSG Convenience Goods.`,
+      description: product.description?.substring(0, 160) || `Buy ${product.name} at GSG Convenience Goods & More.`,
       images: mainImage ? [mainImage] : [],
     },
   };

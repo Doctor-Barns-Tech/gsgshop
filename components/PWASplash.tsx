@@ -30,12 +30,12 @@ export default function PWASplash() {
       <div className="pwa-splash-logo mb-6">
         <img
           src="/logo.png"
-          alt="GSG Convenience Goods"
+          alt="GSG Convenience Goods & More"
           className="w-24 h-24 object-contain brightness-0 invert"
         />
       </div>
       <h1 className="text-white text-xl font-bold font-serif mb-2">GSG Shop</h1>
-      <p className="text-purple-200 text-sm font-medium mb-8">Premium Convenience Goods</p>
+      <p className="text-purple-200 text-sm font-medium mb-8">Premium Convenience Goods & More</p>
       <div className="pwa-splash-dots flex gap-1.5">
         <span className="w-2 h-2 bg-white rounded-full" />
         <span className="w-2 h-2 bg-white rounded-full" />

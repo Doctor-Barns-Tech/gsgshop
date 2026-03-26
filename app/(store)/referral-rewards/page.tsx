@@ -7,7 +7,7 @@ export default function ReferralRewardsPage() {
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gsg-black mb-4">Referral Rewards</h1>
           <p className="text-gray-600">
-            Invite friends to GSG Convenience Goods and earn rewards when they shop.
+            Invite friends to GSG Convenience Goods & More and earn rewards when they shop.
           </p>
         </div>
       </div>

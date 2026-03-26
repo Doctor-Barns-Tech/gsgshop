@@ -56,7 +56,7 @@ export default function PWAPrompt() {
               <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg flex-shrink-0 bg-purple-50 flex items-center justify-center">
                 <img
                   src="/logo.png"
-                  alt="GSG Convenience Goods"
+                  alt="GSG Convenience Goods & More"
                   className="w-14 h-14 object-contain"
                 />
               </div>

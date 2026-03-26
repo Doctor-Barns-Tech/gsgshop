@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
@@ -8,6 +8,7 @@ import ProductCard, { type ColorVariant, getColorHex } from '@/components/Produc
 import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import AnimatedSection, { AnimatedGrid } from '@/components/AnimatedSection';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import HomeHeroCategoryNav, { type HomeCategoryNode } from '@/components/HomeHeroCategoryNav';
 
 const MAIN_GOODS_SLUGS = [
   'grocery', 'mobile', 'stationery', 'lighting-battery', 'food-items', 'nonfood-items',
@@ -52,7 +53,7 @@ export default function Home() {
         const [productsRes, categoriesRes, allCatRes] = await Promise.all([
           supabase.from('products').select('*, product_variants(*), product_images(*)').eq('status', 'active').eq('featured', true).order('created_at', { ascending: false }).limit(12),
           supabase.from('categories').select('id, name, slug, image_url, metadata').eq('status', 'active').order('position').order('name'),
-          supabase.from('categories').select('id, name, slug, image_url').eq('status', 'active').order('position').order('name'),
+          supabase.from('categories').select('id, name, slug, image_url, parent_id').eq('status', 'active').order('position').order('name'),
         ]);
         if (!productsRes.error) setFeaturedProducts(productsRes.data || []);
         const featured = (categoriesRes.data || []).filter((c: any) => c.metadata?.featured === true);
@@ -69,6 +70,26 @@ export default function Home() {
 
   const mainGoods = allCategories.filter((c) => MAIN_GOODS_SLUGS.some((s) => (c.slug || '').toLowerCase().includes(s))).slice(0, 11);
   const showMainGoods = mainGoods.length > 0 ? mainGoods : allCategories.slice(0, 10);
+
+  const categoryTree: HomeCategoryNode[] = useMemo(() => {
+    const parents = allCategories.filter((c: any) => !c.parent_id);
+    return parents
+      .map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        image_url: p.image_url,
+        children: allCategories
+          .filter((c: any) => c.parent_id === p.id)
+          .map((c: any) => ({ id: c.id, name: c.name, slug: c.slug })),
+      }))
+      .slice(0, 12);
+  }, [allCategories]);
+
+  const featuredRailRef = useRef<HTMLDivElement>(null);
+  const scrollFeatured = (dir: number) => {
+    featuredRailRef.current?.scrollBy({ left: dir * 280, behavior: 'smooth' });
+  };
 
   return (
     <main className="min-h-screen bg-white">
@@ -101,7 +122,14 @@ export default function Home() {
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-gsg-purple/5 to-transparent rounded-bl-[100px] -z-0"></div>
         <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-gradient-to-tr from-gsg-accent/10 to-transparent rounded-tr-[100px] -z-0"></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-28 z-10">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 lg:pb-28 pt-0 z-10">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-stretch">
+            {categoryTree.length > 0 && (
+              <div className="hidden lg:block shrink-0 relative">
+                <HomeHeroCategoryNav categories={categoryTree} />
+              </div>
+            )}
+            <div className="flex-1 min-w-0 pt-8 lg:pt-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             {/* Left Content */}
             <div className="max-w-2xl animate-fade-in-up relative z-10">
@@ -213,6 +241,8 @@ export default function Home() {
               </div>
             </div>
           </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -237,18 +267,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Category showcase – Main Goods */}
+      {/* Category showcase – horizontal featured rail (Anjaro-style) */}
       <section className="py-16 bg-gray-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gsg-black">Shop Categories</h2>
-            <Link href="/categories" className="text-gsg-purple font-medium hover:text-gsg-purple-dark flex items-center gap-1">
-              View All <i className="ri-arrow-right-line" />
-            </Link>
+          <div className="flex items-center justify-between mb-8 gap-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-gsg-black">Featured categories</h2>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollFeatured(-1)}
+                className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gsg-purple hover:text-white hover:border-gsg-purple transition-colors shadow-sm"
+                aria-label="Scroll categories left"
+              >
+                <i className="ri-arrow-left-s-line text-xl" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollFeatured(1)}
+                className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gsg-purple hover:text-white hover:border-gsg-purple transition-colors shadow-sm"
+                aria-label="Scroll categories right"
+              >
+                <i className="ri-arrow-right-s-line text-xl" />
+              </button>
+              <Link href="/categories" className="text-gsg-purple font-medium hover:text-gsg-purple-dark flex items-center gap-1 text-sm sm:text-base whitespace-nowrap">
+                View all <i className="ri-arrow-right-line" />
+              </Link>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Link href="/shop" className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all">
+
+          <div
+            ref={featuredRailRef}
+            className="flex flex-nowrap gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory scroll-smooth -mx-1 px-1"
+          >
+            <Link href="/shop" className="group relative flex-none w-[140px] sm:w-[160px] aspect-[4/5] snap-start rounded-2xl overflow-hidden bg-violet-50 shadow-sm border border-violet-100/80 hover:shadow-md transition-all">
               <div className="absolute inset-0 bg-gray-100 group-hover:scale-105 transition-transform duration-500">
                 <Image 
                   src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop" 
@@ -259,12 +310,12 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
               </div>
-              <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                <p className="font-bold text-white text-center">Grocery</p>
+              <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                <p className="font-bold text-white text-center text-sm">Grocery</p>
               </div>
             </Link>
-            
-            <Link href="/shopper" className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all block">
+
+            <Link href="/shopper" className="group relative flex-none w-[140px] sm:w-[160px] aspect-[4/5] snap-start rounded-2xl overflow-hidden bg-amber-50 shadow-sm border border-amber-100/80 hover:shadow-md transition-all block">
               <div className="absolute inset-0 bg-orange-50 group-hover:scale-105 transition-transform duration-500">
                 <Image 
                   src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" 
@@ -275,13 +326,17 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
               </div>
-              <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                <p className="font-bold text-white text-center">Personal Shopper</p>
+              <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                <p className="font-bold text-white text-center text-sm">Personal Shopper</p>
               </div>
             </Link>
 
-            {showMainGoods.slice(0, 10).map((cat) => (
-              <Link key={cat.id} href={`/shop?category=${cat.slug}`} className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all">
+            {showMainGoods.slice(0, 12).map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/shop?category=${cat.slug}`}
+                className="group relative flex-none w-[140px] sm:w-[160px] aspect-[4/5] snap-start rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100 hover:shadow-md transition-all"
+              >
                 <div className="absolute inset-0 bg-gray-100 group-hover:scale-105 transition-transform duration-500">
                   {cat.image_url ? (
                     <Image src={cat.image_url} alt={cat.name} fill className="object-cover" sizes="(max-width: 768px) 50vw, 16vw" />
@@ -291,8 +346,8 @@ export default function Home() {
                     </div>
                   )}
                 </div>
-                <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                  <p className="font-bold text-white text-center text-sm">{cat.name}</p>
+                <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                  <p className="font-bold text-white text-center text-xs sm:text-sm leading-tight line-clamp-2">{cat.name}</p>
                 </div>
               </Link>
             ))}
@@ -403,6 +458,36 @@ export default function Home() {
                 </Link>
               </div>
            </div>
+        </div>
+      </section>
+
+      {/* GSG Business Units */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gsg-black mb-3">GSG Brands Business Units</h2>
+            <p className="text-gray-500">Our growing ecosystem of services across Ghana.</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[
+              { name: 'Convenience Goods & More', icon: 'ri-shopping-cart-2-line', color: 'bg-purple-50 text-gsg-purple' },
+              { name: 'My Personal Shopper', icon: 'ri-vip-crown-line', color: 'bg-orange-50 text-orange-600' },
+              { name: 'Sell-Safe Buy-Safe', icon: 'ri-shield-check-line', color: 'bg-green-50 text-green-600' },
+              { name: 'StreetCuisine', icon: 'ri-restaurant-line', color: 'bg-red-50 text-red-500' },
+              { name: 'Courier', icon: 'ri-truck-line', color: 'bg-blue-50 text-blue-600' },
+              { name: 'Affiliates', icon: 'ri-links-line', color: 'bg-teal-50 text-teal-600' },
+            ].map((unit) => (
+              <div
+                key={unit.name}
+                className="flex flex-col items-center text-center p-5 rounded-2xl bg-gray-50 border border-gray-100 cursor-default"
+              >
+                <div className={`w-12 h-12 rounded-xl ${unit.color} flex items-center justify-center mb-3`}>
+                  <i className={`${unit.icon} text-2xl`}></i>
+                </div>
+                <span className="text-sm font-bold text-gsg-black leading-tight">{unit.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

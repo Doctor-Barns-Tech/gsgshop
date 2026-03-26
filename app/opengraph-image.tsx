@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
  
 export const runtime = 'edge';
  
-export const alt = 'GSG Convenience Goods - Premium Convenience Shopping';
+export const alt = 'GSG Convenience Goods & More - Premium Convenience Shopping';
 export const size = {
   width: 1200,
   height: 630,

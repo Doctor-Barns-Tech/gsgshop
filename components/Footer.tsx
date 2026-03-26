@@ -26,7 +26,7 @@ function FooterSection({ title, children }: { title: string, children: React.Rea
 export default function Footer() {
   const { getSetting } = useCMS();
 
-  const siteName = getSetting('site_name') || 'GSG Convenience Goods';
+  const siteName = getSetting('site_name') || 'GSG Convenience Goods & More';
   const siteTagline = getSetting('site_tagline') || 'Premium Convenience Shopping in Ghana';
   const contactEmail = getSetting('contact_email') || '';
   const contactPhone = getSetting('contact_phone') || '+233 (0) 246 033 792';

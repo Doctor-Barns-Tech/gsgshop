@@ -1,4 +1,4 @@
-// GSG Convenience Goods - Service Worker v2.0
+// GSG Convenience Goods & More - Service Worker v2.0
 const CACHE_VERSION = 'sl-v2.0';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
@@ -212,7 +212,7 @@ self.addEventListener('push', (event) => {
 
   const data = event.data.json();
   const options = {
-    body: data.body || 'New update from GSG Convenience Goods',
+    body: data.body || 'New update from GSG Convenience Goods & More',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png',
     vibrate: [100, 50, 100],
@@ -228,7 +228,7 @@ self.addEventListener('push', (event) => {
 
   event.waitUntil(
     self.registration.showNotification(
-      data.title || 'GSG Convenience Goods',
+      data.title || 'GSG Convenience Goods & More',
       options
     )
   );

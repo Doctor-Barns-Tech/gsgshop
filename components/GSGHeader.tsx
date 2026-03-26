@@ -16,12 +16,20 @@ const MAIN_NAV = [
 ];
 
 const FALLBACK_CATEGORIES = [
-  { label: 'Convenience Goods', href: '/shop', children: [] },
+  { label: 'Convenience Goods & More', href: '/shop', children: [] },
   { label: 'Food Items', href: '/shop?category=food-items', children: [] },
   { label: 'Nonfood Items', href: '/shop?category=nonfood', children: [] },
   { label: 'Personal Care', href: '/shop?category=personal-household-care', children: [] },
   { label: 'Occasions', href: '/shop?category=occasions-holidays', children: [] },
   { label: 'Gift Cards', href: '/gift-card', children: [] },
+];
+
+const FEATURED_NAV_ITEMS = [
+  { label: 'Food Essentials', href: '/shop?category=food-essentials' },
+  { label: 'Non-food Essentials', href: '/shop?category=non-food-essentials' },
+  { label: 'Jeanswear', href: '/shop?category=jeanswear' },
+  { label: 'Free Delivery', href: '/shipping#free-delivery' },
+  { label: 'Personal Shopper', href: '/shopper/shopping-list' },
 ];
 
 interface CategoryItem {
@@ -148,7 +156,7 @@ export default function GSGHeader() {
                 </div>
                 <div className="flex flex-col">
                   <span className="font-bold text-xl md:text-2xl text-gsg-purple leading-none tracking-tight group-hover:text-gsg-purple-dark transition-colors">GSG</span>
-                  <span className="text-[0.6rem] md:text-xs font-medium text-gray-500 uppercase tracking-wider leading-none">Convenience Goods</span>
+                  <span className="text-[0.6rem] md:text-xs font-medium text-gray-500 uppercase tracking-wider leading-none">Convenience Goods & More</span>
                 </div>
               </Link>
             </div>
@@ -215,47 +223,41 @@ export default function GSGHeader() {
             </div>
           </div>
 
-          {/* Navigation Bar - Desktop */}
-          <div className="hidden lg:flex items-center justify-between border-t border-gray-100 py-3">
-            <nav className="flex items-center gap-8">
-              <div className="relative">
-                <button
-                  onClick={() => setMegaMenuOpen(!megaMenuOpen)}
-                  className={`flex items-center gap-2 font-semibold transition-colors ${megaMenuOpen ? 'text-gsg-purple' : 'text-gsg-black hover:text-gsg-purple'}`}
+        {/* Navigation Bar - Desktop */}
+        <div className="hidden lg:flex items-center justify-between border-t border-gray-100">
+          <nav className="flex items-center h-full">
+            <div className="relative h-full flex items-center">
+              <div
+                onClick={() => setMegaMenuOpen(!megaMenuOpen)}
+                className="w-[260px] flex items-center justify-between bg-gsg-purple text-white px-4 py-3.5 font-bold cursor-pointer hover:bg-gsg-purple-dark transition-colors rounded-t-sm"
+              >
+                <div className="flex items-center gap-2 text-sm">
+                  <i className={`${megaMenuOpen ? 'ri-close-line' : 'ri-layout-grid-fill'} text-lg`} />
+                  <span>Categories</span>
+                </div>
+                <Link 
+                  href="/categories" 
+                  onClick={(e) => e.stopPropagation()} 
+                  className="text-xs font-semibold text-white/80 hover:text-white transition-colors"
                 >
-                  <i className={`${megaMenuOpen ? 'ri-close-line' : 'ri-layout-grid-fill'} transition-transform`} />
-                  All Categories
-                  <i className={`ri-arrow-down-s-line text-sm transition-transform ${megaMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
+                  See all
+                </Link>
               </div>
-              <div className="h-4 w-px bg-gray-200" />
-              {categories.slice(0, 5).map((item) => (
+            </div>
+            <div className="flex items-center gap-8 pl-8">
+              {FEATURED_NAV_ITEMS.map((item) => (
                 <div key={item.label} className="relative group/nav">
                   <Link 
                     href={item.href}
-                    className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors relative"
+                    className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors py-3.5 block relative"
                   >
                     {item.label}
-                    <span className="absolute inset-x-0 -bottom-3 h-0.5 bg-gsg-purple scale-x-0 group-hover/nav:scale-x-100 transition-transform origin-left" />
+                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-gsg-purple scale-x-0 group-hover/nav:scale-x-100 transition-transform origin-left" />
                   </Link>
-                  {item.children.length > 0 && (
-                    <div className="absolute top-full left-0 pt-4 opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all duration-200 z-50">
-                      <div className="bg-white rounded-xl shadow-xl border border-gray-100 py-3 min-w-[200px]">
-                        {item.children.map((sub) => (
-                          <Link
-                            key={sub.label}
-                            href={sub.href}
-                            className="block px-5 py-2.5 text-sm text-gray-700 hover:bg-gsg-purple/5 hover:text-gsg-purple transition-colors font-medium"
-                          >
-                            {sub.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               ))}
-            </nav>
+            </div>
+          </nav>
 
             <div className="flex items-center gap-6">
               <Link href="/shipping#sole-express" className="flex items-center gap-2 text-sm font-medium text-gsg-purple hover:text-gsg-purple-dark">
@@ -273,7 +275,7 @@ export default function GSGHeader() {
         {/* Mega Menu Dropdown - Full Width */}
         {megaMenuOpen && (
           <>
-            <div className="fixed inset-0 bg-black/30 z-40 top-[140px]" onClick={() => setMegaMenuOpen(false)} />
+            <div className="fixed inset-0 bg-black/30 z-40 top-[125px]" onClick={() => setMegaMenuOpen(false)} />
             <div className="hidden lg:block absolute left-0 right-0 bg-white border-t border-gray-100 shadow-2xl z-50 animate-fade-in-up">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-5 gap-8">

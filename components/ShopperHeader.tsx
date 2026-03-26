@@ -41,7 +41,7 @@ export default function ShopperHeader() {
               <Link href="/how-it-works" className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors">How it Works</Link>
               <Link href="/track" className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors">Track Request</Link>
               <a href={process.env.NEXT_PUBLIC_SITE_GOODS_URL || 'https://goods.gsgbrands.com.gh'} className="text-sm font-medium text-orange-500 hover:text-orange-600 flex items-center gap-1">
-                <i className="ri-shopping-bag-line"></i> Shop Convenience Goods
+                <i className="ri-shopping-bag-line"></i> Shop Convenience Goods & More
               </a>
             </nav>
 

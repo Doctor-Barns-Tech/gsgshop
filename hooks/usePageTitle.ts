@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-const SITE_NAME = 'GSG Convenience Goods';
+const SITE_NAME = 'GSG Convenience Goods & More';
 
 export function usePageTitle(title: string) {
   useEffect(() => {

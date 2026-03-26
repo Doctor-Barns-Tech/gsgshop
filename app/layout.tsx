@@ -16,12 +16,12 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.gsgbrands.com.gh
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "GSG Convenience Goods | Premium Convenience Shopping in Ghana",
-    template: "%s | GSG Convenience Goods"
+    default: "GSG Convenience Goods & More | Premium Convenience Shopping in Ghana",
+    template: "%s | GSG Convenience Goods & More"
   },
-  description: "Premium convenience goods delivered across Ghana. GSG Convenience Goods—your trusted source for everyday essentials and quality products from Accra.",
+  description: "Premium convenience goods delivered across Ghana. GSG Convenience Goods & More—your trusted source for everyday essentials and quality products from Accra.",
   keywords: [
-    "GSG Convenience Goods",
+    "GSG Convenience Goods & More",
     "GSG",
     "gsgbrands.com.gh",
     "Convenience Shopping Ghana",
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
     "Ghana E-commerce",
     "Quality Products Accra"
   ],
-  authors: [{ name: "GSG Convenience Goods" }],
-  creator: "GSG Convenience Goods",
-  publisher: "GSG Convenience Goods",
+  authors: [{ name: "GSG Convenience Goods & More" }],
+  creator: "GSG Convenience Goods & More",
+  publisher: "GSG Convenience Goods & More",
   robots: {
     index: true,
     follow: true,
@@ -81,21 +81,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GH",
     url: siteUrl,
-    title: "GSG Convenience Goods | Premium Convenience Shopping in Ghana",
+    title: "GSG Convenience Goods & More | Premium Convenience Shopping in Ghana",
     description: "Premium convenience goods delivered across Ghana. Your trusted source for everyday essentials and quality products from Accra.",
-    siteName: "GSG Convenience Goods",
+    siteName: "GSG Convenience Goods & More",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "GSG Convenience Goods",
+        alt: "GSG Convenience Goods & More",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "GSG Convenience Goods | Premium Convenience Shopping in Ghana",
+    title: "GSG Convenience Goods & More | Premium Convenience Shopping in Ghana",
     description: "Premium convenience goods delivered across Ghana. Your trusted source for everyday essentials and quality products from Accra.",
     images: ["/og-image.png"],
     creator: "@gsgbrandsgh",
@@ -151,10 +151,10 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "GSG Convenience Goods",
+              "name": "GSG Convenience Goods & More",
               "url": "https://www.gsgbrands.com.gh",
               "logo": "https://www.gsgbrands.com.gh/logo.png",
-              "description": "Premium convenience goods delivered across Ghana. GSG Convenience Goods—your trusted source for everyday essentials and quality products from Accra.",
+              "description": "Premium convenience goods delivered across Ghana. GSG Convenience Goods & More—your trusted source for everyday essentials and quality products from Accra.",
               "address": {
                 "@type": "PostalAddress",
                 "addressCountry": "GH",

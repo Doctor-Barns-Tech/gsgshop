@@ -163,7 +163,7 @@ export default function TermsPage() {
                   </div>
                   <div>
                     <p className="font-bold text-gsg-black text-lg">Email</p>
-                    <a href="mailto:support@gsgbrands.com.gh" className="text-gsg-purple hover:underline font-medium">support@gsgbrands.com.gh</a>
+                    <a href="mailto:info@gsgbrands.com.gh" className="text-gsg-purple hover:underline font-medium">info@gsgbrands.com.gh</a>
                   </div>
                 </div>
 
@@ -183,7 +183,7 @@ export default function TermsPage() {
                   </div>
                   <div>
                     <p className="font-bold text-gsg-black text-lg">Address</p>
-                    <p className="text-gray-600 font-medium">GSG Convenience Goods<br />Accra, Ghana</p>
+                    <p className="text-gray-600 font-medium">GSG Convenience Goods & More<br />Accra, Ghana</p>
                   </div>
                 </div>
               </div>

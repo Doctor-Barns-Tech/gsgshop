@@ -88,8 +88,9 @@ export default function ContactPage() {
   };
 
   // Get contact details from CMS settings
-  const contactEmail = getSetting('contact_email') || 'support@gsgbrands.com.gh';
-  const contactPhone = getSetting('contact_phone') || '+233209597443';
+  const contactEmail = getSetting('contact_email') || 'info@gsgbrands.com.gh';
+  const contactPhone = getSetting('contact_phone') || '+233 (0) 246 033 792';
+  const contactWhatsApp = getSetting('contact_whatsapp') || '+233246033792';
   const contactAddress = getSetting('contact_address') || 'Accra, Ghana';
 
   const heroTitle = pageContent?.title || 'Get In Touch';
@@ -115,7 +116,7 @@ export default function ContactPage() {
       icon: 'ri-whatsapp-line',
       title: 'WhatsApp',
       value: contactPhone,
-      link: `https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}`,
+      link: `https://wa.me/${contactWhatsApp.replace(/[^0-9]/g, '')}`,
       description: 'Chat with us instantly'
     },
     {
@@ -311,10 +312,10 @@ export default function ContactPage() {
                 Our customer support team is available Monday to Friday, 8am-6pm GMT. For urgent matters, reach out via WhatsApp.
               </p>
               <a
-                href={`https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}`}
+                href={`https://wa.me/${contactWhatsApp.replace(/[^0-9]/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-white text-blue-700 px-6 py-3 rounded-full font-medium hover:bg-blue-50 transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-2 bg-white text-gsg-purple px-6 py-3 rounded-full font-medium hover:bg-purple-50 transition-colors whitespace-nowrap"
               >
                 <i className="ri-whatsapp-line text-xl"></i>
                 Chat on WhatsApp

@@ -17,7 +17,7 @@ interface SEOProps {
 
 export function generateMetadata({
   title = 'Premium Online Shopping in Ghana',
-  description = 'Shop premium convenience goods at GSG Convenience Goods. Locally sourced and imported quality products delivered across Ghana.',
+  description = 'Shop premium convenience goods at GSG Convenience Goods & More. Locally sourced and imported quality products delivered across Ghana.',
   keywords = [],
   ogImage = 'https://readdy.ai/api/search-image?query=modern%20premium%20ecommerce%20online%20shopping%20platform%20elegant%20design&width=1200&height=630&seq=ogimage&orientation=landscape',
   ogType = 'website',
@@ -29,7 +29,7 @@ export function generateMetadata({
   author,
   noindex = false
 }: SEOProps): Metadata {
-  const siteName = 'GSG Convenience Goods';
+  const siteName = 'GSG Convenience Goods & More';
   const siteUrl = 'https://www.gsgbrands.com.gh';
   const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 
@@ -114,7 +114,7 @@ export function generateProductSchema(product: {
     sku: product.sku,
     brand: {
       '@type': 'Brand',
-      name: product.brand || 'GSG Convenience Goods'
+      name: product.brand || 'GSG Convenience Goods & More'
     },
     offers: {
       '@type': 'Offer',
@@ -162,7 +162,7 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'GSG Convenience Goods',
+    name: 'GSG Convenience Goods & More',
     url: 'https://www.gsgbrands.com.gh',
     logo: 'https://readdy.ai/api/search-image?query=premium%20shop%20logo%20elegant%20modern&width=200&height=200&seq=logo&orientation=squarish',
     contactPoint: {
@@ -184,7 +184,7 @@ export function generateWebsiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'GSG Convenience Goods',
+    name: 'GSG Convenience Goods & More',
     url: 'https://www.gsgbrands.com.gh',
     potentialAction: {
       '@type': 'SearchAction',

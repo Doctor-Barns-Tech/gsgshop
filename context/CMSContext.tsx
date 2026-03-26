@@ -66,10 +66,10 @@ interface CMSContextType {
 }
 
 const defaultSettings: SiteSettings = {
-    site_name: 'GSG Convenience Goods',
+    site_name: 'GSG Convenience Goods & More',
     site_tagline: 'Premium Convenience Shopping in Ghana',
     site_logo: '/logo.png',
-    contact_email: 'support@gsgbrands.com.gh',
+    contact_email: 'info@gsgbrands.com.gh',
     contact_phone: '+233 (0) 246 033 792',
     contact_address: 'Accra, Ghana',
     social_facebook: '',
@@ -97,10 +97,10 @@ const CMSContext = createContext<CMSContextType>({
 
 export function CMSProvider({ children }: { children: ReactNode }) {
     const [settings, setSettings] = useState<SiteSettings>({
-        site_name: 'GSG Convenience Goods',
+        site_name: 'GSG Convenience Goods & More',
         site_tagline: 'Premium Convenience Shopping in Ghana',
         site_logo: '/logo.png',
-        contact_email: 'support@gsgbrands.com.gh',
+        contact_email: 'info@gsgbrands.com.gh',
         contact_phone: '+233 (0) 246 033 792',
         contact_address: 'Accra, Ghana',
         social_facebook: '',
@@ -118,11 +118,63 @@ export function CMSProvider({ children }: { children: ReactNode }) {
     const [banners, setBanners] = useState<Banner[]>([]);
     const [loading, setLoading] = useState(false);
 
-    // CMS Fetching Logic Removed - Content is now managed in code.
-    const fetchCMSData = async () => { };
+    const extractSettingValue = (raw: any): string => {
+        if (typeof raw === 'string') return raw;
+        if (typeof raw === 'number' || typeof raw === 'boolean') return String(raw);
+        if (raw && typeof raw === 'object') {
+            if ('value' in raw) return String(raw.value ?? '');
+            return JSON.stringify(raw);
+        }
+        return '';
+    };
 
-    // Initial load handled by state defaults
+    const fetchCMSData = async () => {
+        setLoading(true);
+        try {
+            const [settingsRes, contentRes, bannersRes] = await Promise.all([
+                supabase.from('site_settings').select('key, value'),
+                supabase
+                    .from('cms_content')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('sort_order', { ascending: true }),
+                supabase
+                    .from('banners')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('sort_order', { ascending: true }),
+            ]);
+
+            if (!settingsRes.error && settingsRes.data) {
+                const dynamicSettings: Record<string, string> = {};
+                settingsRes.data.forEach((row: any) => {
+                    dynamicSettings[row.key] = extractSettingValue(row.value);
+                });
+
+                setSettings(prev => ({
+                    ...prev,
+                    ...defaultSettings,
+                    ...dynamicSettings,
+                }));
+            }
+
+            if (!contentRes.error && contentRes.data) {
+                setContent(contentRes.data as CMSContent[]);
+            }
+
+            if (!bannersRes.error && bannersRes.data) {
+                setBanners(bannersRes.data as Banner[]);
+            }
+        } catch (error) {
+            // Keep default values on errors
+            console.error('[CMSContext] Failed to fetch CMS data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
+        fetchCMSData();
     }, []);
 
     const getContent = (section: string, blockKey: string): CMSContent | undefined => {

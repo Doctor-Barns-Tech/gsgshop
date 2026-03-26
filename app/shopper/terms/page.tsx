@@ -12,7 +12,7 @@ export default function ShopperTerms() {
           <h2 className="text-xl font-bold text-gsg-black mt-8 mb-4">2. Pricing and Fees</h2>
           <ul className="list-disc pl-5 space-y-2">
             <li><strong>Market Price:</strong> We purchase items at the actual market price.</li>
-            <li><strong>Commission:</strong> We charge a flat 5% commission on the total cost of the items.</li>
+            <li><strong>Commission:</strong> We charge a flat 5% commission or less on the total cost of the items.</li>
             <li><strong>Delivery Fee:</strong> Delivery fees are calculated based on the distance to your location.</li>
             <li><strong>Sourcing Fee:</strong> In rare cases where items are difficult to find, a sourcing fee may apply. This will be communicated and agreed upon before purchase.</li>
           </ul>

@@ -8,7 +8,7 @@ export default function GiftCardPage() {
     <div className="min-h-screen bg-gray-50">
       <PageHero 
         title="Gift Cards" 
-        subtitle="Give the gift of convenience. GSG Convenience Goods gift cards coming soon."
+        subtitle="Give the gift of convenience. GSG Convenience Goods & More gift cards coming soon."
       />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

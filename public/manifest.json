@@ -1,7 +1,7 @@
 {
-  "name": "GSG Convenience Goods",
+  "name": "GSG Convenience Goods & More",
   "short_name": "GSG Shop",
-  "description": "Premium convenience goods delivered across Ghana. GSG Convenience Goods—your trusted source for everyday essentials.",
+  "description": "Premium convenience goods delivered across Ghana. GSG Convenience Goods & More—your trusted source for everyday essentials.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",

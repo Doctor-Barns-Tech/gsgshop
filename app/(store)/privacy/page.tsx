@@ -278,7 +278,7 @@ export default function PrivacyPage() {
             </div>
 
             <p className="text-gray-600 leading-relaxed bg-gray-50 p-6 rounded-2xl border border-gray-100">
-              To exercise any of these rights, please contact us at <a href="mailto:support@gsgbrands.com.gh" className="text-gsg-purple font-bold hover:underline">support@gsgbrands.com.gh</a> or through your account settings. We will respond within 30 days.
+              To exercise any of these rights, please contact us at <a href="mailto:info@gsgbrands.com.gh" className="text-gsg-purple font-bold hover:underline">info@gsgbrands.com.gh</a> or through your account settings. We will respond within 30 days.
             </p>
           </section>
 
@@ -299,7 +299,7 @@ export default function PrivacyPage() {
                   </div>
                   <div>
                     <p className="font-bold text-gsg-black text-lg">Email</p>
-                    <a href="mailto:support@gsgbrands.com.gh" className="text-gsg-purple hover:underline font-medium">support@gsgbrands.com.gh</a>
+                    <a href="mailto:info@gsgbrands.com.gh" className="text-gsg-purple hover:underline font-medium">info@gsgbrands.com.gh</a>
                   </div>
                 </div>
 
@@ -319,7 +319,7 @@ export default function PrivacyPage() {
                   </div>
                   <div>
                     <p className="font-bold text-gsg-black text-lg">Address</p>
-                    <p className="text-gray-600 font-medium">GSG Convenience Goods<br />Accra, Ghana</p>
+                    <p className="text-gray-600 font-medium">GSG Convenience Goods & More<br />Accra, Ghana</p>
                   </div>
                 </div>
               </div>

@@ -284,7 +284,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
           {/* Header */}
           <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4 mb-4">
             <div>
-              <h1 className="text-2xl font-bold">GSG Convenience Goods</h1>
+              <h1 className="text-2xl font-bold">GSG Convenience Goods & More</h1>
               <p className="text-sm text-gray-600">Order Packing Slip</p>
             </div>
             <div className="text-right">
@@ -345,8 +345,8 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
 
           {/* Footer */}
           <div className="border-t-2 border-gray-800 pt-4 text-center text-sm text-gray-600">
-            <p>Thank you for shopping with GSG Convenience Goods!</p>
-            <p>Questions? Contact us at support@gsgbrands.com.gh</p>
+            <p>Thank you for shopping with GSG Convenience Goods & More!</p>
+            <p>Questions? Contact us at info@gsgbrands.com.gh</p>
           </div>
         </div>
       </div>
