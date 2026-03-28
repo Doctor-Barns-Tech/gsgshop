@@ -4,13 +4,13 @@ import { verifyBrainBearer } from '../../_lib';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const authError = verifyBrainBearer(request);
   if (authError) return authError;
 
   try {
-    const orderId = params.id;
+    const { id: orderId } = await context.params;
 
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')

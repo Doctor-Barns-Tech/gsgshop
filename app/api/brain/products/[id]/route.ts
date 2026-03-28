@@ -3,13 +3,14 @@ import { fetchProductsForBrain, toSafeProduct, verifyBrainBearer } from '../../_
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const authError = verifyBrainBearer(request);
   if (authError) return authError;
 
   try {
-    const rows = await fetchProductsForBrain({ singleId: params.id });
+    const { id } = await context.params;
+    const rows = await fetchProductsForBrain({ singleId: id });
     const product = rows[0];
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
