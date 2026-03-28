@@ -1,0 +1,21 @@
+import { NextResponse } from 'next/server';
+import { fetchProductsForBrain, toSafeProduct, verifyBrainBearer } from '../../_lib';
+
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const authError = verifyBrainBearer(request);
+  if (authError) return authError;
+
+  try {
+    const rows = await fetchProductsForBrain({ singleId: params.id });
+    const product = rows[0];
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+    return NextResponse.json({ product: toSafeProduct(product) });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || 'Failed to load product' }, { status: 500 });
+  }
+}

@@ -14,15 +14,6 @@ const MAIN_GOODS_SLUGS = [
   'grocery', 'mobile', 'stationery', 'lighting-battery', 'food-items', 'nonfood-items',
   'personal-household-care', 'occasions-holidays', 'medicine',
 ];
-const ESSENTIALS_SECTIONS = [
-  { label: 'Pantry & Dry Goods', slug: 'pantry-dry-goods' },
-  { label: 'Snacks & Confectionery', slug: 'snacks-confectionery' },
-  { label: 'Beverages', slug: 'beverages' },
-  { label: 'Personal Care', slug: 'personal-care' },
-  { label: 'Household Essentials', slug: 'household-essentials' },
-  { label: 'Health & Wellness', slug: 'medicine' },
-];
-
 const DELIVERY_OPTIONS = [
   { id: 'pickup', title: 'Pickup', desc: 'Within 72hrs (excluding Sunday) after confirmation.', href: '/shipping#pickup', icon: 'ri-store-2-line' },
   { id: 'free', title: 'Free Delivery', desc: 'Tue/Fri only. Min 5% discount as Free Delivery Discount.', href: '/shipping#free-delivery', icon: 'ri-truck-line' },
@@ -99,7 +90,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
             {/* Sidebar */}
             {categoryTree.length > 0 && (
-              <div className="hidden lg:block shrink-0 relative z-20">
+              <div className="hidden lg:block shrink-0 relative z-[60]">
                 <HomeHeroCategoryNav categories={categoryTree} />
               </div>
             )}
@@ -360,27 +351,6 @@ export default function Home() {
             <Link href="/shop" className="inline-flex items-center justify-center bg-white text-gsg-black border-2 border-gsg-black px-8 py-3 rounded-full font-bold hover:bg-gsg-black hover:text-white transition-all duration-300">
               View All Products
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Shop by Essentials */}
-      <section className="py-16 bg-gsg-purple/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gsg-black mb-8">Shop by Essentials</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {ESSENTIALS_SECTIONS.map((s) => {
-              const cat = allCategories.find((c) => (c.slug || '').toLowerCase().includes(s.slug) || (c.name || '').toLowerCase().includes(s.label.toLowerCase().split(' ')[0]));
-              const href = cat ? `/shop?category=${cat.slug}` : `/shop?category=${s.slug}`;
-              return (
-                <Link key={s.slug} href={href} className="group bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                  <div className="w-12 h-12 mx-auto bg-gsg-purple/10 rounded-full flex items-center justify-center mb-3 group-hover:bg-gsg-purple group-hover:text-white transition-colors">
-                    <i className="ri-shopping-cart-2-line text-2xl text-gsg-purple group-hover:text-white transition-colors" />
-                  </div>
-                  <span className="font-bold text-gsg-black text-sm group-hover:text-gsg-purple transition-colors">{s.label}</span>
-                </Link>
-              );
-            })}
           </div>
         </div>
       </section>

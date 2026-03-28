@@ -125,7 +125,7 @@ export default function HomeHeroCategoryNav({ categories }: { categories: HomeCa
 
   return (
     <aside
-      className="hidden lg:flex flex-col w-[260px] shrink-0 bg-white border border-gray-200 border-t-0 rounded-b-2xl shadow-sm overflow-visible z-30 self-stretch"
+      className="hidden lg:flex flex-col w-[260px] shrink-0 bg-white border border-gray-200 border-t-0 rounded-b-2xl shadow-sm overflow-visible z-[60] self-stretch"
       onMouseLeave={onLeaveNav}
     >
       {/* Category List */}
@@ -161,11 +161,11 @@ export default function HomeHeroCategoryNav({ categories }: { categories: HomeCa
       {/* Flyout mega panel */}
       {active && active.children.length > 0 && (
         <div
-          className="absolute left-full top-0 ml-0 z-40 pl-px min-h-full"
+          className="absolute left-full top-0 ml-0 z-[70] pl-px min-h-full"
           onMouseEnter={clearTimer}
           onMouseLeave={onLeaveNav}
         >
-          <div className="min-w-[520px] max-w-[680px] min-h-[420px] rounded-r-2xl rounded-br-2xl border border-l-0 border-gray-200 bg-white shadow-2xl py-6 px-8">
+          <div className="min-w-[520px] max-w-[680px] min-h-[420px] rounded-r-2xl rounded-br-2xl border border-l-0 border-gray-200 bg-white shadow-2xl py-6 px-8 relative z-[70]">
             {/* Flyout header */}
             <div className="flex items-center justify-between gap-4 mb-5 pb-4 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gsg-black">{active.name}</h3>
