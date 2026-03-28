@@ -13,9 +13,9 @@ export default function ShopperHeader() {
             <a href="tel:+233246033792" className="hover:text-gsg-accent transition-colors">Call: +233 (0) 246 033 792</a>
           </div>
           <div className="flex gap-4">
-            <Link href="/faqs" className="hover:text-gsg-accent transition-colors">FAQs</Link>
+            <Link href="/shopper/faqs" className="hover:text-gsg-accent transition-colors">FAQs</Link>
             <span className="text-white/40">|</span>
-            <Link href="/customer-experience" className="hover:text-gsg-accent transition-colors">Support</Link>
+            <Link href="/shopper/customer-experience" className="hover:text-gsg-accent transition-colors">Support</Link>
           </div>
         </div>
       </div>
@@ -25,7 +25,7 @@ export default function ShopperHeader() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4 flex items-center justify-between gap-4 md:gap-8">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
+            <Link href="/shopper" className="flex items-center gap-2 group">
               <div className="relative w-8 h-8 md:w-10 md:h-10">
                  <Image src="/logo.svg" alt="GSG Logo" fill className="object-contain" />
               </div>
@@ -37,9 +37,9 @@ export default function ShopperHeader() {
 
             {/* Navigation Bar - Desktop */}
             <nav className="hidden md:flex items-center gap-8">
-              <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors">Home</Link>
-              <Link href="/how-it-works" className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors">How it Works</Link>
-              <Link href="/track" className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors">Track Request</Link>
+              <Link href="/shopper" className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors">Home</Link>
+              <Link href="/shopper/how-it-works" className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors">How it Works</Link>
+              <Link href="/shopper/track" className="text-sm font-medium text-gray-600 hover:text-gsg-purple transition-colors">Track Request</Link>
               <a href={process.env.NEXT_PUBLIC_SITE_GOODS_URL || 'https://goods.gsgbrands.com.gh'} className="text-sm font-medium text-orange-500 hover:text-orange-600 flex items-center gap-1">
                 <i className="ri-shopping-bag-line"></i> Shop Convenience Goods & More
               </a>
@@ -48,7 +48,7 @@ export default function ShopperHeader() {
             {/* Actions */}
             <div className="flex items-center gap-4">
               <Link 
-                href="/shopping-list" 
+                href="/shopper/shopping-list" 
                 className="bg-gsg-purple text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-gsg-purple-dark transition-colors shadow-md"
               >
                 Create List

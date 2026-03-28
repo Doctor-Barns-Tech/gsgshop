@@ -2,8 +2,39 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function ShopperHome() {
+  const sourceCategories = [
+    {
+      name: 'Convenience Goods',
+      icon: 'ri-shopping-cart-2-line',
+      color: 'text-gsg-purple',
+      bg: 'bg-purple-50',
+      desc: 'Everyday essentials from trusted shops and markets.',
+    },
+    {
+      name: 'Specialty Goods',
+      icon: 'ri-vip-diamond-line',
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+      desc: 'Unique, imported, and brand-specific request items.',
+    },
+    {
+      name: 'Unsought Goods',
+      icon: 'ri-capsule-line',
+      color: 'text-teal-600',
+      bg: 'bg-teal-50',
+      desc: 'Medicines and hard-to-find urgent essentials.',
+    },
+    {
+      name: 'Building Materials',
+      icon: 'ri-building-2-line',
+      color: 'text-orange-600',
+      bg: 'bg-orange-50',
+      desc: 'Construction and renovation supplies delivered to you.',
+    },
+  ];
+
   return (
-    <div>
+    <div className="bg-white">
       {/* Hero Section */}
       <section className="relative bg-gsg-purple overflow-hidden min-h-[480px] md:min-h-[560px]">
         {/* Background Image */}
@@ -26,7 +57,7 @@ export default function ShopperHome() {
             <span>Your Personal Shopper Service</span>
           </div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-white leading-tight animate-fade-in-up animate-delay-100">
-            List Them — We Shop <br className="hidden md:block" /> For You...
+            List Them We Shop <br className="hidden md:block" /> For You...
           </h1>
           <p className="text-xl md:text-2xl mb-10 text-purple-100 max-w-3xl mx-auto animate-fade-in-up animate-delay-200 font-light">
             Quality, fresh, and yummy goods delivered to you <strong className="font-bold text-white">at the exact source price</strong>. Time & money saved.
@@ -50,80 +81,37 @@ export default function ShopperHome() {
         </div>
       </section>
 
-      {/* Feature Highlights */}
-      <section className="py-12 bg-white border-b border-gray-100 relative z-20 -mt-8">
+      {/* How it works preview */}
+      <section className="py-14 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                <i className="ri-money-dollar-circle-line text-2xl text-green-600"></i>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { step: '01', title: 'Create your list', text: 'Add item names, quantity, and estimated prices.' },
+              { step: '02', title: 'We source for you', text: 'We buy at source price with 5% commission or less.' },
+              { step: '03', title: 'Pay & receive', text: 'Confirm totals, pay securely, and get delivery.' },
+            ].map((s) => (
+              <div key={s.step} className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-md transition-shadow">
+                <p className="text-xs font-bold tracking-[0.2em] text-gsg-purple mb-3">{s.step}</p>
+                <h3 className="font-bold text-gsg-black text-xl mb-2">{s.title}</h3>
+                <p className="text-gray-600">{s.text}</p>
               </div>
-              <div>
-                <h3 className="font-bold text-gsg-black">Market Price Guarantee</h3>
-                <p className="text-sm text-gray-500">No hidden markups on items</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
-                <i className="ri-percent-line text-2xl text-gsg-purple"></i>
-              </div>
-              <div>
-                <h3 className="font-bold text-gsg-black">5% Commission or Less</h3>
-                <p className="text-sm text-gray-500">Simple, transparent pricing</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
-                <i className="ri-truck-line text-2xl text-orange-500"></i>
-              </div>
-              <div>
-                <h3 className="font-bold text-gsg-black">Doorstep Delivery</h3>
-                <p className="text-sm text-gray-500">Scheduled to your convenience</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Categories Grid */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gsg-black mb-4">What We Source For You</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">From fresh produce to prescribed medicines, we handle the hassle of shopping so you don't have to.</p>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+              Simple categories, one trusted service.
+            </p>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { 
-                name: 'Convenience Goods', 
-                icon: 'ri-shopping-cart-2-line', 
-                color: 'text-gsg-purple', 
-                bg: 'bg-purple-50',
-                desc: 'Everyday essentials — groceries, beverages, snacks, personal care, household items, and more.'
-              },
-              { 
-                name: 'Specialty Goods', 
-                icon: 'ri-vip-diamond-line', 
-                color: 'text-amber-600', 
-                bg: 'bg-amber-50',
-                desc: 'Unique or brand-specific items — electronics, fashion, imported goods, and specialty foods.'
-              },
-              { 
-                name: 'Unsought Goods', 
-                icon: 'ri-capsule-line', 
-                color: 'text-teal-600', 
-                bg: 'bg-teal-50',
-                desc: 'Items you need but may not think to shop for — medicines, insurance documents, emergency supplies.'
-              },
-              { 
-                name: 'Building Materials', 
-                icon: 'ri-building-2-line', 
-                color: 'text-orange-600', 
-                bg: 'bg-orange-50',
-                desc: 'Construction and renovation needs — cement, roofing, plumbing, electrical supplies, paint, and hardware.'
-              },
-            ].map((category, i) => (
+            {sourceCategories.map((category, i) => (
               <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-gsg-purple/30 transition-all group cursor-default">
                 <div className={`w-14 h-14 rounded-xl ${category.bg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
                   <i className={`${category.icon} text-3xl ${category.color}`}></i>
@@ -134,8 +122,8 @@ export default function ShopperHome() {
             ))}
           </div>
 
-          <div className="mt-14 text-center">
-            <p className="text-gray-500 mb-6 font-medium text-lg">From fresh produce and traditional market ingredients to prescribed medicines and construction materials — we handle it all.</p>
+          <div className="mt-12 text-center">
+            <p className="text-gray-500 mb-6 font-medium text-lg">List your items once. We handle the stress end-to-end.</p>
             <Link 
               href="/shopper/shopping-list" 
               className="inline-flex items-center gap-3 bg-gsg-purple text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-gsg-purple-dark transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 group"
@@ -149,13 +137,13 @@ export default function ShopperHome() {
       </section>
 
       {/* Simple CTA */}
-      <section className="py-20 bg-white">
+      <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-8">
+          <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <i className="ri-whatsapp-line text-4xl text-gsg-purple"></i>
           </div>
-          <h2 className="text-3xl font-bold text-gsg-black mb-4">Have questions?</h2>
-          <p className="text-xl text-gray-600 mb-8">Our support team is available 24/7 on WhatsApp to assist you with your shopping needs.</p>
+          <h2 className="text-3xl font-bold text-gsg-black mb-3">Need help quickly?</h2>
+          <p className="text-lg text-gray-600 mb-8">Our support team is active on WhatsApp 24/7.</p>
           <a 
             href="https://wa.me/233246033792" 
             target="_blank" 

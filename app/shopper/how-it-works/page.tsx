@@ -1,66 +1,104 @@
+import Link from 'next/link';
+
+const STEPS = [
+  {
+    id: '01',
+    title: 'Create Your List',
+    icon: 'ri-list-check-3',
+    content:
+      'Start from the Shopping List page. Add item names, quantities, and your estimated prices. For produce, you can also choose Local Market, Imported, or Controlled Environment.',
+  },
+  {
+    id: '02',
+    title: 'We Source at Market Price',
+    icon: 'ri-store-2-line',
+    content:
+      'After submission, our team reviews your list and starts sourcing. We buy at the exact source market price with no hidden markups on the goods.',
+  },
+  {
+    id: '03',
+    title: 'Transparent Fees',
+    icon: 'ri-percent-line',
+    content:
+      'We charge 5% commission or less on item subtotal. Delivery fee is based on distance. If a rare sourcing fee is needed, we always agree with you first.',
+  },
+  {
+    id: '04',
+    title: 'Pay & Schedule Delivery',
+    icon: 'ri-secure-payment-line',
+    content:
+      'Once totals are confirmed, you pay securely online. Your personal shopper buys the items and delivers to your preferred location and time.',
+  },
+];
+
 export default function HowItWorks() {
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-5xl font-bold text-gsg-black mb-4">How It Works</h1>
-          <p className="text-xl text-gray-600">Your personal shopper experience, simplified.</p>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 mb-12">
-          <div className="space-y-12">
-            
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="w-16 h-16 shrink-0 bg-gsg-purple text-white rounded-full flex items-center justify-center text-2xl font-bold">1</div>
-              <div>
-                <h3 className="text-2xl font-bold text-gsg-black mb-3">Create Your List</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Navigate to the <a href="/shopper/shopping-list" className="text-gsg-purple font-bold hover:underline">Shopping List</a> page. Add the items you need, specifying the brand, quantity, and your estimated price. For produce, you can even specify the source (Local Market, Imported, or Controlled Environment).
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="w-16 h-16 shrink-0 bg-gsg-purple text-white rounded-full flex items-center justify-center text-2xl font-bold">2</div>
-              <div>
-                <h3 className="text-2xl font-bold text-gsg-black mb-3">We Source at Market Price</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Once you submit your list, our team reviews it and begins sourcing your items. We guarantee that we buy your items at the exact source market price—no hidden markups on the goods themselves.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="w-16 h-16 shrink-0 bg-gsg-purple text-white rounded-full flex items-center justify-center text-2xl font-bold">3</div>
-              <div>
-                <h3 className="text-2xl font-bold text-gsg-black mb-3">Transparent Fees</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  We charge a flat <strong>5% commission or less</strong> on the subtotal of your items. A delivery fee is calculated based on the distance to your location. In rare cases, a small sourcing fee may apply if items require extensive travel to find, but this will always be agreed upon with you first.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="w-16 h-16 shrink-0 bg-gsg-purple text-white rounded-full flex items-center justify-center text-2xl font-bold">4</div>
-              <div>
-                <h3 className="text-2xl font-bold text-gsg-black mb-3">Pay & Schedule Delivery</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Once prices are confirmed, you will receive a notification to complete your payment securely online. After payment, your personal shopper will purchase the items and deliver them to your doorstep at your preferred time.
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div className="bg-purple-50 border border-purple-100 rounded-2xl p-8 text-center">
-          <i className="ri-time-line text-4xl text-gsg-purple mb-4 block"></i>
-          <h3 className="text-xl font-bold text-gsg-black mb-2">Important Note</h3>
-          <p className="text-purple-800">
-            We advise timely placement of your shopping list ahead of your preferred delivery time to ensure we can source the freshest and best quality items for you.
+    <div className="bg-gray-50 min-h-screen">
+      <section className="relative overflow-hidden bg-gradient-to-br from-gsg-purple to-gsg-purple-dark py-16 md:py-20">
+        <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 text-white text-sm font-medium mb-6">
+            <i className="ri-magic-line" />
+            My Personal Shopper by GSG
+          </span>
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">How It Works</h1>
+          <p className="text-lg md:text-xl text-white/85 max-w-2xl mx-auto">
+            Straightforward process, transparent pricing, and delivery you can trust.
           </p>
         </div>
-      </div>
+      </section>
+
+      <section className="pt-8 md:pt-10 pb-12 md:pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-5 md:gap-6">
+            {STEPS.map((step) => (
+              <div
+                key={step.id}
+                className="group bg-white border border-gray-200 rounded-2xl p-6 md:p-7 shadow-sm hover:shadow-xl hover:border-gsg-purple/30 transition-all duration-300"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 shrink-0 rounded-xl bg-gsg-purple/10 text-gsg-purple flex items-center justify-center group-hover:bg-gsg-purple group-hover:text-white transition-colors">
+                    <i className={`${step.icon} text-xl`} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-xs font-bold tracking-[0.2em] text-gsg-purple">{step.id}</span>
+                      <div className="h-px bg-gray-200 flex-1" />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold text-gsg-black mb-2">{step.title}</h3>
+                    <p className="text-gray-600 leading-relaxed text-sm md:text-base">{step.content}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 md:mt-10 bg-white border border-gsg-purple/20 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
+            <div>
+              <h3 className="text-xl md:text-2xl font-bold text-gsg-black mb-2">Important Note</h3>
+              <p className="text-gray-600 max-w-2xl">
+                We advise timely placement of your shopping list ahead of your preferred delivery time so we can source the freshest and best quality items.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 md:shrink-0">
+              <Link
+                href="/shopper/shopping-list"
+                className="inline-flex items-center justify-center gap-2 bg-gsg-purple text-white min-w-[160px] px-7 py-3.5 rounded-full font-bold whitespace-nowrap hover:bg-gsg-purple-dark transition-colors"
+              >
+                <i className="ri-list-check-2" />
+                Create List
+              </Link>
+              <Link
+                href="/shopper/track"
+                className="inline-flex items-center justify-center gap-2 bg-white text-gsg-purple border border-gsg-purple/30 min-w-[160px] px-7 py-3.5 rounded-full font-bold whitespace-nowrap hover:bg-gsg-purple/5 transition-colors"
+              >
+                <i className="ri-map-pin-line" />
+                Track Request
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

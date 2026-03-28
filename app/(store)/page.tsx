@@ -94,153 +94,98 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white">
       {/* Modern Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
-        {/* Mobile Background Slider */}
-        <div className="lg:hidden absolute inset-0 z-0">
-          {HERO_IMAGES.map((img, index) => (
-            <div
-              key={img}
-              className={`absolute inset-0 transition-opacity duration-1000 ${index === currentHeroImage ? 'opacity-100' : 'opacity-0'}`}
-            >
-              <Image
-                src={img}
-                alt="Hero Background"
-                fill
-                className="object-cover"
-                priority={index === 0}
-              />
-              <div className="absolute inset-0 bg-white/30"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent"></div>
-            </div>
-          ))}
-        </div>
-
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#6B21A8 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-        
-        {/* Abstract Shapes */}
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-gsg-purple/5 to-transparent rounded-bl-[100px] -z-0"></div>
-        <div className="absolute bottom-0 left-0 w-1/3 h-1/2 bg-gradient-to-tr from-gsg-accent/10 to-transparent rounded-tr-[100px] -z-0"></div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 lg:pb-28 pt-0 z-10">
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-stretch">
+      <section className="relative bg-gray-50 overflow-hidden">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 lg:pb-28 pt-0 lg:pt-6 z-10">
+          <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
+            {/* Sidebar */}
             {categoryTree.length > 0 && (
-              <div className="hidden lg:block shrink-0 relative">
+              <div className="hidden lg:block shrink-0 relative z-20">
                 <HomeHeroCategoryNav categories={categoryTree} />
               </div>
             )}
-            <div className="flex-1 min-w-0 pt-8 lg:pt-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Left Content */}
-            <div className="max-w-2xl animate-fade-in-up relative z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gsg-purple/10 text-gsg-purple text-sm font-bold mb-6 backdrop-blur-sm">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gsg-purple opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-gsg-purple"></span>
+            
+            {/* Center Banner Slider */}
+            <div className="flex-1 min-w-0 relative rounded-2xl overflow-hidden shadow-sm bg-gsg-black lg:h-[430px] group">
+              {HERO_IMAGES.map((img, index) => (
+                <div
+                  key={img}
+                  className={`absolute inset-0 transition-opacity duration-1000 ${index === currentHeroImage ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                >
+                  <Image
+                    src={img}
+                    alt="Promo Banner"
+                    fill
+                    className="object-cover opacity-80"
+                    priority={index === 0}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-gsg-black/90 via-gsg-black/50 to-transparent"></div>
+                </div>
+              ))}
+
+              <div className="absolute inset-0 z-20 flex flex-col justify-center px-8 md:px-12 lg:px-16">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gsg-purple text-white text-xs font-bold mb-6 w-fit shadow-lg">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                  </span>
+                  Now delivering to all regions
                 </span>
-                Now delivering to all regions
-              </div>
-              
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gsg-black mb-6 leading-[1.1] tracking-tight">
-                Premium Convenience <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-gsg-purple to-gsg-accent">Delivered to You.</span>
-              </h1>
-              
-              <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-lg">
-                Experience the new standard of online shopping in Ghana. 
-                Trustworthy service, premium goods, and delivery that fits your schedule.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                <Link
-                  href="/shop"
-                  className="inline-flex items-center justify-center bg-gsg-purple text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-gsg-purple-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-                >
-                  Start Shopping
-                  <i className="ri-arrow-right-line ml-2" />
-                </Link>
-                <Link
-                  href="/shipping"
-                  className="inline-flex items-center justify-center bg-white text-gsg-purple border-2 border-gsg-purple/20 px-8 py-4 rounded-full font-bold text-lg hover:bg-gsg-purple/5 hover:border-gsg-purple transition-all duration-300"
-                >
-                  Delivery Options
-                </Link>
-              </div>
-              
-              <div className="w-full border-t border-gray-200 pt-6">
-                <div className="flex flex-nowrap overflow-x-auto pb-2 md:pb-0 gap-3 md:gap-6 text-sm font-medium text-gray-500 scrollbar-hide snap-x">
-                  <div className="flex-none snap-start flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full md:bg-transparent md:p-0 border border-gray-100 md:border-0">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
-                      <i className="ri-shield-check-line" />
-                    </div>
-                    <span className="whitespace-nowrap">Secure Payment</span>
-                  </div>
-                  <div className="flex-none snap-start flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full md:bg-transparent md:p-0 border border-gray-100 md:border-0">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                      <i className="ri-truck-line" />
-                    </div>
-                    <span className="whitespace-nowrap">Fast Delivery</span>
-                  </div>
-                  <div className="flex-none snap-start flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full md:bg-transparent md:p-0 border border-gray-100 md:border-0">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
-                      <i className="ri-customer-service-2-line" />
-                    </div>
-                    <span className="whitespace-nowrap">24/7 Support</span>
-                  </div>
+                
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 leading-[1.08] tracking-tight max-w-lg">
+                  Premium Convenience,
+                  <span className="text-gsg-accent"> Delivered.</span>
+                </h1>
+                
+                <p className="text-base text-gray-200/90 mb-7 leading-relaxed max-w-md hidden sm:block">
+                  Trusted everyday essentials with fast, reliable delivery across Ghana.
+                </p>
+                
+                <div className="flex flex-wrap gap-4">
+                  <Link
+                    href="/shop"
+                    className="inline-flex items-center justify-center bg-gsg-purple text-white px-8 py-3.5 rounded-full font-bold text-sm hover:bg-gsg-purple-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    Start Shopping
+                    <i className="ri-arrow-right-line ml-2" />
+                  </Link>
                 </div>
+              </div>
+
+              {/* Slider Controls */}
+              <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2">
+                {HERO_IMAGES.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentHeroImage(index)}
+                    className={`h-2 rounded-full transition-all duration-300 ${index === currentHeroImage ? 'w-8 bg-gsg-purple' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
               </div>
             </div>
 
-            {/* Right Visual */}
-            <div className="relative hidden lg:block h-[500px]">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-br from-gsg-purple/5 to-transparent rounded-full blur-3xl -z-10"></div>
-              
-              {/* Main Image Card */}
-              <div className="absolute top-0 right-0 w-3/4 h-[85%] rounded-3xl overflow-hidden shadow-2xl border-4 border-white transform rotate-3 hover:rotate-0 transition-transform duration-500 z-10">
-                <Image 
-                  src="/hero-1.png" 
-                  alt="GSG Shopping Experience" 
-                  fill 
-                  className="object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                <div className="absolute bottom-6 left-6 text-white">
-                  <p className="font-bold text-lg">Fresh Groceries</p>
-                  <p className="text-sm opacity-90">Farm to table</p>
-                </div>
+            {/* Right Column: Quick Promos */}
+            <div className="hidden xl:flex flex-col w-[260px] shrink-0 gap-6 lg:h-[430px]">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100 flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-shadow">
+                 <div className="absolute top-0 right-0 w-24 h-24 bg-amber-200 rounded-full blur-2xl opacity-50 -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
+                 <span className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2">Featured Deal</span>
+                 <h3 className="text-xl font-bold text-gsg-black mb-2 leading-tight">Fresh Groceries Bundle</h3>
+                 <div className="flex items-end gap-2 mb-5">
+                   <span className="text-2xl font-extrabold text-gsg-purple">GHS 150</span>
+                 </div>
+                 <Link href="/shop" className="text-sm font-bold text-white bg-gsg-black px-4 py-2.5 rounded-xl text-center hover:bg-gray-800 transition-colors z-10">
+                   Shop Now
+                 </Link>
               </div>
-
-              {/* Secondary Image Card */}
-              <div className="absolute bottom-0 left-0 w-2/3 h-[60%] rounded-3xl overflow-hidden shadow-xl border-4 border-white transform -rotate-6 hover:rotate-0 transition-transform duration-500 z-20">
-                <Image 
-                  src="/hero-2.png" 
-                  alt="GSG Delivery" 
-                  fill 
-                  className="object-cover"
-                  priority
-                />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                <div className="absolute bottom-6 left-6 text-white">
-                  <p className="font-bold text-lg">Fast Delivery</p>
-                  <p className="text-sm opacity-90">Right to your door</p>
-                </div>
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100 flex-1 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-shadow">
+                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-200 rounded-full blur-2xl opacity-50 -ml-10 -mb-10 group-hover:scale-150 transition-transform duration-700"></div>
+                 <span className="text-xs font-bold text-gsg-purple uppercase tracking-wider mb-2">Personal Shopper</span>
+                 <h3 className="text-xl font-bold text-gsg-black mb-2 leading-tight">We shop for you!</h3>
+                 <p className="text-sm text-gray-600 mb-5 line-clamp-2">Get exactly what you need at market price.</p>
+                 <Link href="/shopper" className="text-sm font-bold text-white bg-gsg-purple px-4 py-2.5 rounded-xl text-center hover:bg-gsg-purple-dark transition-colors z-10">
+                   Create List
+                 </Link>
               </div>
-
-              {/* Floating Badge */}
-              <div className="absolute top-10 left-10 bg-white p-4 rounded-2xl shadow-xl z-30 animate-bounce-slow">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
-                    <i className="ri-star-fill text-xl" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gsg-black leading-none">4.9/5</p>
-                    <p className="text-xs text-gray-500 mt-1">Customer Rating</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
             </div>
           </div>
         </div>
