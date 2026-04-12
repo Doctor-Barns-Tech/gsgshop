@@ -14,6 +14,20 @@ const MAIN_GOODS_SLUGS = [
   'grocery', 'mobile', 'stationery', 'lighting-battery', 'food-items', 'nonfood-items',
   'personal-household-care', 'occasions-holidays', 'medicine',
 ];
+const FALLBACK_HOME_CATEGORY_ROWS = [
+  { id: 'fallback-grocery', name: 'Grocery', slug: 'grocery', image_url: null, parent_id: null },
+  { id: 'fallback-lighting-battery', name: 'House Lighting & Gadget Batteries', slug: 'house-lighting-gadget-batteries', image_url: null, parent_id: null },
+  { id: 'fallback-jeanswear', name: 'JeansWear', slug: 'jeanswear', image_url: null, parent_id: null },
+  { id: 'fallback-mobile', name: 'Mobile Phones & Accessories', slug: 'mobile-phones-accessories', image_url: null, parent_id: null },
+  { id: 'fallback-more', name: 'More', slug: 'more', image_url: null, parent_id: null },
+  { id: 'fallback-personal-shopper', name: 'My Personal Shopper', slug: 'my-personal-shopper', image_url: null, parent_id: null },
+  { id: 'fallback-stationery', name: 'Stationery', slug: 'stationery', image_url: null, parent_id: null },
+  { id: 'fallback-food-essentials', name: 'Food Essentials', slug: 'food-essentials', image_url: null, parent_id: null },
+  { id: 'fallback-nonfood-essentials', name: 'Non-food Essentials', slug: 'non-food-essentials', image_url: null, parent_id: null },
+  { id: 'fallback-personal-care', name: 'Personal & Household Care', slug: 'personal-household-care', image_url: null, parent_id: null },
+  { id: 'fallback-occasions', name: 'Occasions & Holidays', slug: 'occasions-holidays', image_url: null, parent_id: null },
+  { id: 'fallback-medicine', name: 'Medicine', slug: 'medicine', image_url: null, parent_id: null },
+];
 const DELIVERY_OPTIONS = [
   { id: 'pickup', title: 'Pickup', desc: 'Within 72hrs (excluding Sunday) after confirmation.', href: '/shipping#pickup', icon: 'ri-store-2-line' },
   { id: 'free', title: 'Free Delivery', desc: 'Tue/Fri only. Min 5% discount as Free Delivery Discount.', href: '/shipping#free-delivery', icon: 'ri-truck-line' },
@@ -25,7 +39,7 @@ export default function Home() {
   usePageTitle('');
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [allCategories, setAllCategories] = useState<any[]>(FALLBACK_HOME_CATEGORY_ROWS);
   const [loading, setLoading] = useState(true);
 
   const [currentHeroImage, setCurrentHeroImage] = useState(0);
@@ -49,7 +63,9 @@ export default function Home() {
         if (!productsRes.error) setFeaturedProducts(productsRes.data || []);
         const featured = (categoriesRes.data || []).filter((c: any) => c.metadata?.featured === true);
         setCategories(featured.length > 0 ? featured : (categoriesRes.data || []).slice(0, 8));
-        setAllCategories(allCatRes.data || []);
+        if (!allCatRes.error && (allCatRes.data || []).length > 0) {
+          setAllCategories(allCatRes.data || []);
+        }
       } catch (e) {
         console.error(e);
       } finally {

@@ -29,7 +29,7 @@ export default function PWASplash() {
     <div className="pwa-splash" aria-hidden="true">
       <div className="pwa-splash-logo mb-6">
         <img
-          src="/logo.png"
+          src="/logo.svg"
           alt="GSG Convenience Goods & More"
           className="w-24 h-24 object-contain brightness-0 invert"
         />

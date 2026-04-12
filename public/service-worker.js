@@ -14,7 +14,7 @@ const STATIC_ASSETS = [
   '/account',
   '/categories',
   '/offline',
-  '/logo.png',
+  '/logo.svg',
 ];
 
 // Cache size limits

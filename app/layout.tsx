@@ -153,7 +153,7 @@ export default function RootLayout({
               "@type": "Organization",
               "name": "GSG Convenience Goods & More",
               "url": "https://www.gsgbrands.com.gh",
-              "logo": "https://www.gsgbrands.com.gh/logo.png",
+              "logo": "https://www.gsgbrands.com.gh/logo.svg",
               "description": "Premium convenience goods delivered across Ghana. GSG Convenience Goods & More—your trusted source for everyday essentials and quality products from Accra.",
               "address": {
                 "@type": "PostalAddress",
