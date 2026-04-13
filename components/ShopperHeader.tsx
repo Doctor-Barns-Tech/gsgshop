@@ -27,7 +27,7 @@ export default function ShopperHeader() {
             {/* Logo */}
             <Link href="/shopper" className="flex items-center gap-2 group">
               <div className="relative w-8 h-8 md:w-10 md:h-10">
-                 <Image src="/logo.svg" alt="GSG Logo" fill className="object-contain" />
+                 <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-xl md:text-2xl text-gsg-purple leading-none tracking-tight group-hover:text-gsg-purple-dark transition-colors">GSG</span>

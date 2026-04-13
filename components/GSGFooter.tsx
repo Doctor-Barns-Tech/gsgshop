@@ -29,7 +29,7 @@ export default function GSGFooter() {
             <Link href="/" className="inline-block mb-6">
               <div className="flex items-center gap-2">
                 <div className="relative w-10 h-10">
-                  <Image src="/logo.svg" alt="GSG Logo" fill className="object-contain brightness-0 invert" />
+                 <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain brightness-0 invert" />
                 </div>
                 <div className="flex flex-col">
                   <span className="font-bold text-2xl text-white leading-none tracking-tight">GSG</span>

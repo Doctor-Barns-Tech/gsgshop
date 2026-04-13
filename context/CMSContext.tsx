@@ -68,7 +68,7 @@ interface CMSContextType {
 const defaultSettings: SiteSettings = {
     site_name: 'GSG Convenience Goods & More',
     site_tagline: 'Premium Convenience Shopping in Ghana',
-    site_logo: '/logo.svg',
+    site_logo: '/fgfg.png',
     contact_email: 'info@gsgbrands.com.gh',
     contact_phone: '+233 (0) 246 033 792',
     contact_address: 'Accra, Ghana',
@@ -99,7 +99,7 @@ export function CMSProvider({ children }: { children: ReactNode }) {
     const [settings, setSettings] = useState<SiteSettings>({
         site_name: 'GSG Convenience Goods & More',
         site_tagline: 'Premium Convenience Shopping in Ghana',
-        site_logo: '/logo.svg',
+        site_logo: '/fgfg.png',
         contact_email: 'info@gsgbrands.com.gh',
         contact_phone: '+233 (0) 246 033 792',
         contact_address: 'Accra, Ghana',

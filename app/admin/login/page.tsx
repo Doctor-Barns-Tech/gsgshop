@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-4">
             <div className="relative w-16 h-16 mx-auto">
-               <Image src="/logo.svg" alt="GSG Logo" fill className="object-contain" />
+              <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain" />
             </div>
           </Link>
           <h1 className="text-3xl font-bold text-gsg-black mb-2">Admin Portal</h1>
