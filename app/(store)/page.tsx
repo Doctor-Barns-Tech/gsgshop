@@ -102,7 +102,7 @@ export default function Home() {
     <main className="min-h-screen bg-white">
       {/* Modern Hero Section */}
       <section className="relative bg-gray-50 overflow-hidden">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-20 lg:pb-28 pt-0 lg:pt-6 z-10">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 md:pb-10 lg:pb-12 pt-0 lg:pt-6 z-10">
           <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
             {/* Sidebar */}
             {categoryTree.length > 0 && (
@@ -199,7 +199,7 @@ export default function Home() {
       </section>
 
       {/* Category showcase – horizontal featured rail (Anjaro-style) */}
-      <section className="py-16 bg-gray-50/50">
+      <section className="pt-8 pb-16 bg-gray-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8 gap-4">
             <h2 className="text-2xl md:text-3xl font-bold text-gsg-black">Featured categories</h2>

@@ -29,10 +29,12 @@ export default function GSGFooter() {
             <Link href="/" className="inline-block mb-6">
               <div className="flex items-center gap-2">
                 <div className="relative w-10 h-10">
-                 <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain brightness-0 invert" />
+                  <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-2xl text-white leading-none tracking-tight">GSG</span>
+                  <div className="relative w-[82px] h-[28px]">
+                    <Image src="/fgfg.png" alt="GSG Wordmark" fill className="object-contain object-left" />
+                  </div>
                   <span className="text-xs font-medium text-gray-400 uppercase tracking-wider leading-none">Convenience Goods & More</span>
                 </div>
               </div>

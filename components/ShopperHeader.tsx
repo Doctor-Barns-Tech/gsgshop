@@ -30,7 +30,9 @@ export default function ShopperHeader() {
                  <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-xl md:text-2xl text-gsg-purple leading-none tracking-tight group-hover:text-gsg-purple-dark transition-colors">GSG</span>
+                <div className="relative w-[68px] h-[24px] md:w-[90px] md:h-[30px]">
+                  <Image src="/fgfg.png" alt="GSG Wordmark" fill className="object-contain object-left" />
+                </div>
                 <span className="text-[0.6rem] md:text-xs font-medium text-gray-500 uppercase tracking-wider leading-none">Personal Shopper</span>
               </div>
             </Link>
