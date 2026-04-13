@@ -198,27 +198,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Delivery options strip */}
-      <section className="py-12 bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {DELIVERY_OPTIONS.map((opt) => (
-              <Link
-                key={opt.id}
-                href={opt.href}
-                className="group p-6 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl hover:shadow-gsg-purple/5 border border-transparent hover:border-gsg-purple/10 transition-all duration-300"
-              >
-                <div className="w-12 h-12 rounded-xl bg-white text-gsg-purple shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-gsg-purple group-hover:text-white transition-all duration-300">
-                  <i className={`${opt.icon} text-2xl`} />
-                </div>
-                <h3 className="font-bold text-gsg-black mb-2 group-hover:text-gsg-purple transition-colors">{opt.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{opt.desc}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Category showcase – horizontal featured rail (Anjaro-style) */}
       <section className="py-16 bg-gray-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -392,31 +371,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* GSG Business Units */}
-      <section className="py-16 bg-white border-b border-gray-100">
+      {/* Delivery options strip */}
+      <section className="py-12 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gsg-black mb-3">GSG Brands Business Units</h2>
-            <p className="text-gray-500">Our growing ecosystem of services across Ghana.</p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[
-              { name: 'Convenience Goods & More', icon: 'ri-shopping-cart-2-line', color: 'bg-purple-50 text-gsg-purple' },
-              { name: 'My Personal Shopper', icon: 'ri-vip-crown-line', color: 'bg-orange-50 text-orange-600' },
-              { name: 'Sell-Safe Buy-Safe', icon: 'ri-shield-check-line', color: 'bg-green-50 text-green-600' },
-              { name: 'StreetCuisine', icon: 'ri-restaurant-line', color: 'bg-red-50 text-red-500' },
-              { name: 'Courier', icon: 'ri-truck-line', color: 'bg-blue-50 text-blue-600' },
-              { name: 'Affiliates', icon: 'ri-links-line', color: 'bg-teal-50 text-teal-600' },
-            ].map((unit) => (
-              <div
-                key={unit.name}
-                className="flex flex-col items-center text-center p-5 rounded-2xl bg-gray-50 border border-gray-100 cursor-default"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {DELIVERY_OPTIONS.map((opt) => (
+              <Link
+                key={opt.id}
+                href={opt.href}
+                className="group p-6 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl hover:shadow-gsg-purple/5 border border-transparent hover:border-gsg-purple/10 transition-all duration-300"
               >
-                <div className={`w-12 h-12 rounded-xl ${unit.color} flex items-center justify-center mb-3`}>
-                  <i className={`${unit.icon} text-2xl`}></i>
+                <div className="w-12 h-12 rounded-xl bg-white text-gsg-purple shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-gsg-purple group-hover:text-white transition-all duration-300">
+                  <i className={`${opt.icon} text-2xl`} />
                 </div>
-                <span className="text-sm font-bold text-gsg-black leading-tight">{unit.name}</span>
-              </div>
+                <h3 className="font-bold text-gsg-black mb-2 group-hover:text-gsg-purple transition-colors">{opt.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{opt.desc}</p>
+              </Link>
             ))}
           </div>
         </div>
