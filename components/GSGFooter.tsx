@@ -27,10 +27,7 @@ export default function GSGFooter() {
           {/* Brand */}
           <div className="lg:col-span-4">
             <Link href="/" className="inline-block mb-6">
-              <div className="flex items-center gap-2">
-                <div className="relative w-10 h-10">
-                  <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain" />
-                </div>
+              <div className="flex items-center">
                 <div className="flex flex-col">
                   <div className="relative w-[82px] h-[28px]">
                     <Image src="/fgfg.png" alt="GSG Wordmark" fill className="object-contain object-left" />

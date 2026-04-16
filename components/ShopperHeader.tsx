@@ -25,10 +25,7 @@ export default function ShopperHeader() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4 flex items-center justify-between gap-4 md:gap-8">
             {/* Logo */}
-            <Link href="/shopper" className="flex items-center gap-2 group">
-              <div className="relative w-8 h-8 md:w-10 md:h-10">
-                 <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain" />
-              </div>
+            <Link href="/shopper" className="flex items-center group">
               <div className="flex flex-col">
                 <div className="relative w-[68px] h-[24px] md:w-[90px] md:h-[30px]">
                   <Image src="/fgfg.png" alt="GSG Wordmark" fill className="object-contain object-left" />

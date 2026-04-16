@@ -112,7 +112,7 @@ export default function Home() {
             )}
             
             {/* Center Banner Slider */}
-            <div className="flex-1 min-w-0 relative rounded-2xl overflow-hidden shadow-sm bg-gsg-black lg:h-[430px] group">
+            <div className="flex-1 min-w-0 relative rounded-2xl overflow-hidden shadow-sm bg-gsg-black h-[320px] sm:h-[380px] lg:h-[430px] group">
               {HERO_IMAGES.map((img, index) => (
                 <div
                   key={img}

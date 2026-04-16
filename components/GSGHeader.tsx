@@ -29,7 +29,6 @@ const FEATURED_NAV_ITEMS = [
   { label: 'Non-food Essentials', href: '/shop?category=non-food-essentials' },
   { label: 'Jeanswear', href: '/shop?category=jeanswear' },
   { label: 'Free Delivery', href: '/shipping#free-delivery' },
-  { label: 'Personal Shopper', href: '/shopper/shopping-list' },
 ];
 
 interface CategoryItem {
@@ -150,10 +149,7 @@ export default function GSGHeader() {
               >
                 <i className="ri-menu-line text-2xl" />
               </button>
-              <Link href="/" className="flex items-center gap-2 group">
-                <div className="relative w-8 h-8 md:w-10 md:h-10">
-                  <Image src="/fgfg.png" alt="GSG Logo" fill className="object-contain" />
-                </div>
+              <Link href="/" className="flex items-center group">
                 <div className="flex flex-col">
                   <div className="relative w-[68px] h-[24px] md:w-[90px] md:h-[30px]">
                     <Image src="/fgfg.png" alt="GSG Wordmark" fill className="object-contain object-left" />
