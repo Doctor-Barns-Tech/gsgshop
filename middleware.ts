@@ -20,10 +20,11 @@ export async function middleware(request: NextRequest) {
 
     // We don't want to rewrite API routes, admin routes, or static files
     const isApiRoute = pathname.startsWith('/api/');
+    const isBrainRoute = pathname.startsWith('/brain');
     const isAdminRoute = pathname.startsWith('/admin');
     const isStaticFile = pathname.startsWith('/_next') || pathname.includes('.');
 
-    if (isShopperDomain && !isApiRoute && !isAdminRoute && !isStaticFile) {
+    if (isShopperDomain && !isApiRoute && !isAdminRoute && !isBrainRoute && !isStaticFile) {
         // If the path doesn't already start with /shopper, rewrite it
         if (!pathname.startsWith('/shopper')) {
             const newUrl = new URL(`/shopper${pathname === '/' ? '' : pathname}`, request.url);

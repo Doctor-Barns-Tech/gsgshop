@@ -1,6 +1,8 @@
 # Brain API (Server-Only)
 
 All endpoints are served by this app under `/api/brain/*`.
+
+**Barns / Sasu tenant contract:** use **`/brain/v1/*`** (Sarah Lawson–style adapter). See [`tenant-shop-integration.md`](./tenant-shop-integration.md) and [`TENANT_SHOP_ADAPTER_SPEC.md`](../TENANT_SHOP_ADAPTER_SPEC.md). The `/api/brain/*` routes remain for older integrations.
 External callers must **never** connect to Supabase directly.
 
 ## Authentication
