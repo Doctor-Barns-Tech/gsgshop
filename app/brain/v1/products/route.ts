@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   assertBrainApiVersion,
   fetchActiveProducts,
+  fetchRecommendedProducts,
   jsonError,
   logRequestContext,
   verifyAdapterBearer,
@@ -16,22 +17,31 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get('q') ?? '').trim();
-  if (!q) {
-    return jsonError('validation_error', 'Query parameter q is required', 422, {
-      fields: { q: 'required' },
-    });
-  }
-
   const limit = searchParams.get('limit')
     ? parseInt(searchParams.get('limit')!, 10)
     : 20;
+  const lim = Number.isFinite(limit) ? limit : 20;
   const category = searchParams.get('category');
 
   try {
+    // Spec says `q` is required; many clients omit it — return featured/recent products instead of 422.
+    if (!q) {
+      const products = await fetchRecommendedProducts(lim);
+      return NextResponse.json(
+        { products },
+        {
+          headers: {
+            'Cache-Control': 'no-store',
+            'X-Brain-Compat': 'empty-q-used-recommendations',
+          },
+        }
+      );
+    }
+
     const products = await fetchActiveProducts({
       q,
       category: category || null,
-      limit: Number.isFinite(limit) ? limit : 20,
+      limit: lim,
     });
     return NextResponse.json({ products }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: any) {

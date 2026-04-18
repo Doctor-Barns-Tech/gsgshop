@@ -56,6 +56,7 @@ curl -H "Authorization: Bearer $KEY" "https://your-domain/brain/v1/store-info"
 |----------|---------|
 | `SHOP_ADAPTER_API_KEY_PREVIOUS` | Previous key during rotation (accept up to 72h alongside the new key) |
 | `BRAIN_API_KEY` | **Legacy:** same Bearer accepted if `SHOP_ADAPTER_API_KEY` unset (older `/api/brain` clients) |
+| `BRAIN_V1_CORS_ORIGIN` | Defaults to `*`. Set to Barns origin if you must restrict CORS (e.g. `https://barns.sasulabs.me`). Middleware adds CORS + `OPTIONS` for `/brain/*` so clients can read the API. |
 
 ### WhatsApp inbox embed (spec §12) — optional
 
@@ -77,3 +78,10 @@ curl -H "Authorization: Bearer $KEY" "https://your-domain/brain/v1/store-info"
 - **HTTPS** with a valid certificate in production.
 - **Rate limiting** (~60 req/min/IP) is recommended at the edge (Cloudflare / Coolify / Vercel); not yet enforced in-app.
 - **Timeouts:** keep DB queries fast; Sasu default is ~8s per tool call.
+
+## Troubleshooting: “bot can’t read the shop”
+
+1. **Production env** — `SHOP_ADAPTER_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` must be set on Vercel/Coolify (same values as local). If the key only exists in `.env.local`, production will return **401** or **500**.
+2. **URL** — Barns must call the deployed host (e.g. `https://goods.gsgbrands.com.gh/brain/v1/...`), not localhost.
+3. **CORS / OPTIONS** — Middleware sends `Access-Control-Allow-*` for `/brain/*`. If a custom origin is required, set `BRAIN_V1_CORS_ORIGIN`.
+4. **Product search** — `GET /brain/v1/products` without `q` returns featured-style products (compat header `X-Brain-Compat: empty-q-used-recommendations`) instead of failing.

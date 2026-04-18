@@ -8,6 +8,37 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const hostname = request.headers.get('host') || '';
+
+    // ============================================================
+    // Barns / Sasu shop adapter — CORS + OPTIONS preflight
+    // Without this, browser or some edge fetch clients cannot call /brain/v1/* (blocked reads).
+    // ============================================================
+    if (pathname.startsWith('/brain')) {
+        const allowOrigin = process.env.BRAIN_V1_CORS_ORIGIN?.trim() || '*';
+        const allowHeaders =
+            'Authorization, Content-Type, X-Request-Id, X-Brain-Api-Version';
+
+        if (request.method === 'OPTIONS') {
+            return new NextResponse(null, {
+                status: 204,
+                headers: {
+                    'Access-Control-Allow-Origin': allowOrigin,
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                    'Access-Control-Allow-Headers': allowHeaders,
+                    'Access-Control-Max-Age': '86400',
+                },
+            });
+        }
+
+        const brainRes = NextResponse.next();
+        brainRes.headers.set('Access-Control-Allow-Origin', allowOrigin);
+        brainRes.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        brainRes.headers.set('Access-Control-Allow-Headers', allowHeaders);
+        brainRes.headers.set('X-Content-Type-Options', 'nosniff');
+        brainRes.headers.set('Cache-Control', 'no-store');
+        return brainRes;
+    }
+
     const response = NextResponse.next();
 
     // ============================================================
