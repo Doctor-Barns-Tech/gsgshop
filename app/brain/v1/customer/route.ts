@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   assertBrainApiVersion,
+  brainOk,
   jsonError,
   logRequestContext,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const verr = assertBrainApiVersion(request);
@@ -14,7 +16,8 @@ export async function GET(request: Request) {
   if (authErr) return authErr;
   logRequestContext(request);
 
-  const email = (new URL(request.url).searchParams.get('email') ?? '').trim().toLowerCase();
+  const sp = new URL(request.url).searchParams;
+  const email = (sp.get('email') ?? sp.get('customer_email') ?? '').trim().toLowerCase();
   if (!email) {
     return jsonError('validation_error', 'email query parameter is required', 422);
   }
@@ -27,7 +30,7 @@ export async function GET(request: Request) {
       .maybeSingle();
 
     if (row) {
-      return NextResponse.json({
+      return brainOk({
         customer: {
           id: String(row.id),
           email: row.email,
@@ -54,7 +57,7 @@ export async function GET(request: Request) {
 
     const total_spent = orders.reduce((s, o: any) => s + Number(o.total ?? 0), 0);
 
-    return NextResponse.json({
+    return brainOk({
       customer: {
         id: `guest:${email}`,
         email,

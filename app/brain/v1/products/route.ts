@@ -1,12 +1,14 @@
-import { NextResponse } from 'next/server';
 import {
   assertBrainApiVersion,
+  brainOk,
   fetchActiveProducts,
   fetchRecommendedProducts,
   jsonError,
   logRequestContext,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const verr = assertBrainApiVersion(request);
@@ -16,7 +18,12 @@ export async function GET(request: Request) {
   logRequestContext(request);
 
   const { searchParams } = new URL(request.url);
-  const q = (searchParams.get('q') ?? '').trim();
+  const q = (
+    searchParams.get('q') ??
+    searchParams.get('query') ??
+    searchParams.get('search') ??
+    ''
+  ).trim();
   const limit = searchParams.get('limit')
     ? parseInt(searchParams.get('limit')!, 10)
     : 20;
@@ -27,15 +34,9 @@ export async function GET(request: Request) {
     // Spec says `q` is required; many clients omit it — return featured/recent products instead of 422.
     if (!q) {
       const products = await fetchRecommendedProducts(lim);
-      return NextResponse.json(
-        { products },
-        {
-          headers: {
-            'Cache-Control': 'no-store',
-            'X-Brain-Compat': 'empty-q-used-recommendations',
-          },
-        }
-      );
+      const headers = new Headers();
+      headers.set('X-Brain-Compat', 'empty-q-used-recommendations');
+      return brainOk({ products }, { headers });
     }
 
     const products = await fetchActiveProducts({
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
       category: category || null,
       limit: lim,
     });
-    return NextResponse.json({ products }, { headers: { 'Cache-Control': 'no-store' } });
+    return brainOk({ products });
   } catch (e: any) {
     console.error('[brain/v1/products]', e);
     return jsonError('internal', e?.message || 'Failed to load products', 500);

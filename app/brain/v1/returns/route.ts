@@ -1,11 +1,14 @@
-import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   assertBrainApiVersion,
+  brainOk,
   jsonError,
   logRequestContext,
+  readJsonBody,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   const verr = assertBrainApiVersion(request);
@@ -15,7 +18,9 @@ export async function POST(request: Request) {
   logRequestContext(request);
 
   try {
-    const body = await request.json();
+    const parsed = await readJsonBody<Record<string, unknown>>(request);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.data;
     const order_id = body?.order_id ? String(body.order_id) : '';
     const order_number = String(body?.order_number ?? '').trim();
     const email = String(body?.customer_email ?? body?.email ?? '').trim().toLowerCase();
@@ -69,7 +74,7 @@ export async function POST(request: Request) {
       return jsonError('internal', error?.message || 'Failed to create return', 500);
     }
 
-    return NextResponse.json(
+    return brainOk(
       {
         return: {
           id: String(ret.id),

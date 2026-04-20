@@ -1,10 +1,12 @@
-import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   assertBrainApiVersion,
+  brainOk,
   logRequestContext,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
@@ -19,21 +21,18 @@ export async function GET(
   const { code: raw } = await context.params;
   const code = decodeURIComponent(raw || '').trim();
   if (!code) {
-    return NextResponse.json(
-      {
-        coupon: {
-          code: '',
-          valid: false,
-          reason: 'not_found',
-          type: 'percent',
-          value: 0,
-          minimum_purchase: 0,
-          currency: 'GHS',
-          expires_at: null,
-        },
+    return brainOk({
+      coupon: {
+        code: '',
+        valid: false,
+        reason: 'not_found',
+        type: 'percent',
+        value: 0,
+        minimum_purchase: 0,
+        currency: 'GHS',
+        expires_at: null,
       },
-      { status: 200 }
-    );
+    });
   }
 
   const cartTotal = new URL(request.url).searchParams.get('cart_total');
@@ -46,7 +45,7 @@ export async function GET(
     .maybeSingle();
 
   if (error || !row) {
-    return NextResponse.json({
+    return brainOk({
       coupon: {
         code,
         valid: false,
@@ -62,7 +61,7 @@ export async function GET(
 
   const now = new Date();
   if (row.is_active === false) {
-    return NextResponse.json({
+    return brainOk({
       coupon: {
         code: row.code,
         valid: false,
@@ -76,7 +75,7 @@ export async function GET(
     });
   }
   if (row.start_date && new Date(row.start_date) > now) {
-    return NextResponse.json({
+    return brainOk({
       coupon: {
         code: row.code,
         valid: false,
@@ -90,7 +89,7 @@ export async function GET(
     });
   }
   if (row.end_date && new Date(row.end_date) < now) {
-    return NextResponse.json({
+    return brainOk({
       coupon: {
         code: row.code,
         valid: false,
@@ -104,7 +103,7 @@ export async function GET(
     });
   }
   if (row.usage_limit != null && row.usage_count != null && row.usage_count >= row.usage_limit) {
-    return NextResponse.json({
+    return brainOk({
       coupon: {
         code: row.code,
         valid: false,
@@ -119,7 +118,7 @@ export async function GET(
   }
   const minPurchase = Number(row.minimum_purchase ?? 0);
   if (cartNum !== null && !Number.isNaN(cartNum) && cartNum < minPurchase) {
-    return NextResponse.json({
+    return brainOk({
       coupon: {
         code: row.code,
         valid: false,
@@ -133,7 +132,7 @@ export async function GET(
     });
   }
 
-  return NextResponse.json({
+  return brainOk({
     coupon: {
       code: row.code,
       valid: true,

@@ -1,11 +1,14 @@
-import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   assertBrainApiVersion,
+  brainOk,
   jsonError,
   logRequestContext,
+  readJsonBody,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   const verr = assertBrainApiVersion(request);
@@ -15,14 +18,22 @@ export async function POST(request: Request) {
   logRequestContext(request);
 
   try {
-    const body = await request.json();
-    const subject = String(body?.subject ?? '').trim();
-    const description = String(body?.description ?? '').trim();
+    const parsed = await readJsonBody<Record<string, unknown>>(request);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.data;
+    let subject = String(body?.subject ?? body?.title ?? '').trim();
+    const description = String(
+      body?.description ?? body?.message ?? body?.body ?? ''
+    ).trim();
     const category = String(body?.category ?? 'general').trim();
-    const email = String(body?.email ?? '').trim().toLowerCase();
+    const email = String(body?.email ?? body?.customer_email ?? '').trim().toLowerCase();
+
+    if (!subject && description) {
+      subject = description.length > 140 ? `${description.slice(0, 137)}...` : description;
+    }
 
     if (!subject || !email) {
-      return jsonError('validation_error', 'subject and email are required', 422);
+      return jsonError('validation_error', 'subject (or message) and email are required', 422);
     }
 
     const { data, error } = await supabaseAdmin
@@ -42,7 +53,7 @@ export async function POST(request: Request) {
       return jsonError('internal', error?.message || 'Failed to create ticket', 500);
     }
 
-    return NextResponse.json(
+    return brainOk(
       {
         ticket: {
           id: String(data.id),

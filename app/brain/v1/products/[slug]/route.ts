@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
 import {
   assertBrainApiVersion,
+  brainOk,
   fetchProductOne,
   jsonError,
   logRequestContext,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
@@ -25,7 +27,7 @@ export async function GET(
     if (!product) {
       return jsonError('not_found', 'Product not found', 404);
     }
-    return NextResponse.json({ product }, { headers: { 'Cache-Control': 'no-store' } });
+    return brainOk({ product });
   } catch (e: any) {
     console.error('[brain/v1/products/:slug]', e);
     return jsonError('internal', e?.message || 'Failed to load product', 500);

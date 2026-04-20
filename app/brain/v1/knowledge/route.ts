@@ -1,12 +1,14 @@
-import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   assertBrainApiVersion,
+  brainOk,
   jsonError,
   logRequestContext,
   siteBaseUrl,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 const STATIC_SNIPPETS = [
   {
@@ -44,18 +46,30 @@ export async function GET(request: Request) {
   logRequestContext(request);
 
   const { searchParams } = new URL(request.url);
-  const q = (searchParams.get('q') ?? '').trim().toLowerCase();
+  const q = (searchParams.get('q') ?? searchParams.get('query') ?? '').trim().toLowerCase();
   const limit = Math.min(
     Math.max(parseInt(searchParams.get('limit') ?? '10', 10) || 10, 1),
     30
   );
 
-  if (!q) {
-    return jsonError('validation_error', 'q query parameter is required', 422);
-  }
-
   try {
     const base = siteBaseUrl();
+
+    if (!q) {
+      const entries = STATIC_SNIPPETS.slice(0, limit).map((s) => ({
+        id: s.id,
+        title: s.title,
+        path: s.path,
+        category: s.category,
+        content: s.content,
+        keywords: s.keywords,
+        url: `${base}${s.path}`,
+      }));
+      const headers = new Headers();
+      headers.set('X-Brain-Compat', 'empty-q-static-knowledge');
+      return brainOk({ entries }, { headers });
+    }
+
     const entries: any[] = [];
 
     for (const s of STATIC_SNIPPETS) {
@@ -94,10 +108,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json(
-      { entries: entries.slice(0, limit) },
-      { headers: { 'Cache-Control': 'no-store' } }
-    );
+    return brainOk({ entries: entries.slice(0, limit) });
   } catch (e: any) {
     console.error('[brain/v1/knowledge]', e);
     return jsonError('internal', e?.message || 'Knowledge search failed', 500);

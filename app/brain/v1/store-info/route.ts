@@ -1,12 +1,14 @@
-import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   assertBrainApiVersion,
+  brainOk,
   jsonError,
   logRequestContext,
   siteBaseUrl,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 async function loadSettings(): Promise<Record<string, string>> {
   const { data } = await supabaseAdmin.from('site_settings').select('key, value');
@@ -67,7 +69,7 @@ export async function GET(request: Request) {
       pages,
     };
 
-    return NextResponse.json({ store_info }, { headers: { 'Cache-Control': 'no-store' } });
+    return brainOk({ store_info });
   } catch (e: any) {
     console.error('[brain/v1/store-info]', e);
     return jsonError('internal', e?.message || 'Failed to load store info', 500);

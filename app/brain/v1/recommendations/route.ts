@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
 import {
   assertBrainApiVersion,
+  brainOk,
   fetchRecommendedProducts,
   jsonError,
   logRequestContext,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const verr = assertBrainApiVersion(request);
@@ -21,7 +23,7 @@ export async function GET(request: Request) {
 
   try {
     const products = await fetchRecommendedProducts(Number.isFinite(limit) ? limit : 8);
-    return NextResponse.json({ products }, { headers: { 'Cache-Control': 'no-store' } });
+    return brainOk({ products });
   } catch (e: any) {
     console.error('[brain/v1/recommendations]', e);
     return jsonError('internal', e?.message || 'Failed to load recommendations', 500);
