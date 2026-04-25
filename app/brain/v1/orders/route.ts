@@ -1,17 +1,14 @@
+import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   assertBrainApiVersion,
-  brainOk,
   jsonError,
   loadOrderWithItems,
   logRequestContext,
   mapOrderRow,
-  readJsonBody,
   siteBaseUrl,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
-
-export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const verr = assertBrainApiVersion(request);
@@ -21,13 +18,8 @@ export async function GET(request: Request) {
   logRequestContext(request);
 
   const { searchParams } = new URL(request.url);
-  const number = (
-    searchParams.get('number') ??
-    searchParams.get('order_number') ??
-    searchParams.get('order') ??
-    ''
-  ).trim();
-  const email = (searchParams.get('email') ?? searchParams.get('customer_email') ?? '').trim();
+  const number = (searchParams.get('number') ?? '').trim();
+  const email = (searchParams.get('email') ?? '').trim();
 
   if (!number || !email) {
     return jsonError('validation_error', 'number and email query parameters are required', 422, {
@@ -41,7 +33,7 @@ export async function GET(request: Request) {
       return jsonError('not_found', 'Order not found', 404);
     }
     const order = await mapOrderRow(loaded.order, loaded.items);
-    return brainOk({ order });
+    return NextResponse.json({ order }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: any) {
     console.error('[brain/v1/orders GET]', e);
     return jsonError('internal', e?.message || 'Failed to load order', 500);
@@ -58,9 +50,7 @@ export async function POST(request: Request) {
   logRequestContext(request);
 
   try {
-    const parsed = await readJsonBody<Record<string, any>>(request);
-    if (!parsed.ok) return parsed.response;
-    const body = parsed.data;
+    const body = await request.json();
     const items: IncomingItem[] = Array.isArray(body?.items) ? body.items : [];
     const customer = body?.customer && typeof body.customer === 'object' ? body.customer : {};
     const email = String(customer.email ?? '').trim().toLowerCase();
@@ -82,17 +72,15 @@ export async function POST(request: Request) {
     }
 
     for (const item of items) {
-      const pid = item?.product_id != null ? String(item.product_id).trim() : '';
-      if (!pid) {
+      if (!item?.product_id) {
         return jsonError('validation_error', 'Each item must include product_id', 422);
       }
-      const qty = Number(item.quantity);
-      if (!Number.isFinite(qty) || qty <= 0 || Math.floor(qty) !== qty) {
+      if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
         return jsonError('validation_error', 'Each item quantity must be a positive integer', 422);
       }
     }
 
-    const productIds = items.map((i) => String(i.product_id).trim());
+    const productIds = items.map((i) => i.product_id);
     const { data: products, error: productsError } = await supabaseAdmin
       .from('products')
       .select('id, name, price, quantity, status, slug')
@@ -107,23 +95,21 @@ export async function POST(request: Request) {
     let subtotal = 0;
 
     for (const item of items) {
-      const pid = String(item.product_id).trim();
-      const product = productMap.get(pid);
+      const product = productMap.get(item.product_id);
       if (!product || product.status !== 'active') {
-        return jsonError('validation_error', `Invalid or inactive product: ${pid}`, 422);
+        return jsonError('validation_error', `Invalid or inactive product: ${item.product_id}`, 422);
       }
       const stock = Number(product.quantity ?? 0);
-      const qty = Number(item.quantity);
-      if (stock > 0 && qty > stock) {
+      if (stock > 0 && item.quantity > stock) {
         return jsonError('validation_error', `Insufficient stock for product: ${product.name}`, 422);
       }
       const unitPrice = Number(product.price ?? 0);
-      const lineTotal = unitPrice * qty;
+      const lineTotal = unitPrice * item.quantity;
       subtotal += lineTotal;
       orderItemsPayload.push({
         product_id: product.id,
         product_name: product.name,
-        quantity: qty,
+        quantity: item.quantity,
         unit_price: unitPrice,
         total_price: lineTotal,
         variant_name: null,
@@ -195,7 +181,7 @@ export async function POST(request: Request) {
     const mapped = await mapOrderRow(loaded.order, loaded.items);
     const payUrl = `${base}/order-tracking?order=${encodeURIComponent(order.order_number)}`;
 
-    return brainOk(
+    return NextResponse.json(
       {
         order: mapped,
         payment: {
@@ -205,7 +191,7 @@ export async function POST(request: Request) {
           expires_at: null,
         },
       },
-      { status: 201 }
+      { status: 201, headers: { 'Cache-Control': 'no-store' } }
     );
   } catch (e: any) {
     console.error('[brain/v1/orders POST]', e);

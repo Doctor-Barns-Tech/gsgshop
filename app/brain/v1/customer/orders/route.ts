@@ -1,14 +1,12 @@
+import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   assertBrainApiVersion,
-  brainOk,
   jsonError,
   logRequestContext,
   mapOrderRow,
   verifyAdapterBearer,
 } from '@/lib/brain-v1-adapter';
-
-export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const verr = assertBrainApiVersion(request);
@@ -18,9 +16,7 @@ export async function GET(request: Request) {
   logRequestContext(request);
 
   const { searchParams } = new URL(request.url);
-  const email = (searchParams.get('email') ?? searchParams.get('customer_email') ?? '')
-    .trim()
-    .toLowerCase();
+  const email = (searchParams.get('email') ?? '').trim().toLowerCase();
   const limit = searchParams.get('limit')
     ? parseInt(searchParams.get('limit')!, 10)
     : 20;
@@ -54,7 +50,7 @@ export async function GET(request: Request) {
       orders.push(await mapOrderRow(o, items || []));
     }
 
-    return brainOk({ orders });
+    return NextResponse.json({ orders }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: any) {
     console.error('[brain/v1/customer/orders]', e);
     return jsonError('internal', e?.message || 'Failed to load orders', 500);

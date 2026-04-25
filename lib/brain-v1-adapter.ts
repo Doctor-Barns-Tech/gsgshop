@@ -12,23 +12,6 @@ export type BrainErrorCode =
   | 'internal'
   | 'not_implemented';
 
-/** CORS on JSON bodies — middleware may not merge onto all route-handler responses. */
-export function brainCorsHeaders(): Record<string, string> {
-  return {
-    'Access-Control-Allow-Origin': process.env.BRAIN_V1_CORS_ORIGIN?.trim() || '*',
-    'Access-Control-Allow-Headers':
-      'Authorization, Content-Type, X-Request-Id, X-Brain-Api-Version',
-  };
-}
-
-export function brainOk(body: unknown, init?: ResponseInit) {
-  const headers = new Headers(init?.headers);
-  headers.set('Cache-Control', 'no-store');
-  headers.set('Content-Type', 'application/json; charset=utf-8');
-  Object.entries(brainCorsHeaders()).forEach(([k, v]) => headers.set(k, v));
-  return NextResponse.json(body, { ...init, headers });
-}
-
 export function jsonError(
   code: BrainErrorCode,
   message: string,
@@ -37,20 +20,14 @@ export function jsonError(
 ) {
   return NextResponse.json(
     { error: { code, message, ...extra } },
-    {
-      status,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        ...brainCorsHeaders(),
-      },
-    }
+    { status, headers: { 'Content-Type': 'application/json; charset=utf-8' } }
   );
 }
 
 export function notImplemented(message: string) {
   return NextResponse.json(
     { error: { code: 'not_implemented', message } },
-    { status: 501, headers: { 'Content-Type': 'application/json; charset=utf-8', ...brainCorsHeaders() } }
+    { status: 501, headers: { 'Content-Type': 'application/json; charset=utf-8' } }
   );
 }
 
@@ -62,20 +39,18 @@ function adapterKeys(): string[] {
   return keys;
 }
 
-/** Case-insensitive `Bearer` (some HTTP clients send `bearer`). Spec §2. */
-export function parseBearerToken(request: Request): string | null {
-  const auth = request.headers.get('authorization') ?? '';
-  const m = /^\s*Bearer\s+(.+?)\s*$/i.exec(auth);
-  return m ? m[1].trim() : null;
-}
-
 export function verifyAdapterBearer(request: Request): NextResponse | null {
   const keys = adapterKeys();
   if (keys.length === 0) {
     return jsonError('internal', 'Server misconfigured: set SHOP_ADAPTER_API_KEY (or BRAIN_API_KEY)', 500);
   }
 
-  const token = parseBearerToken(request);
+  const auth = request.headers.get('authorization');
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return jsonError('unauthorized', 'Invalid API key', 401);
+  }
+
+  const token = auth.slice('Bearer '.length).trim();
   if (!token || !keys.includes(token)) {
     return jsonError('unauthorized', 'Invalid API key', 401);
   }
@@ -83,32 +58,18 @@ export function verifyAdapterBearer(request: Request): NextResponse | null {
   return null;
 }
 
-/** Spec §11: accept 1, v1, 1.0 — absent = v1. */
+/** Spec §11: Sasu may send X-Brain-Api-Version: 1. Absent header = treat as v1. */
 export function assertBrainApiVersion(request: Request): NextResponse | null {
-  const v = request.headers.get('x-brain-api-version')?.trim();
-  if (!v) return null;
-  const ok = v === '1' || /^v?1(\.0)?$/i.test(v);
-  if (ok) return null;
+  const v = request.headers.get('x-brain-api-version');
+  if (!v || v.trim() === '') return null;
+  if (v.trim() === '1') return null;
   return jsonError('validation_error', 'Unsupported X-Brain-Api-Version', 400);
 }
 
-/** TENANT_SHOP_TEAM.md: log X-Request-Id on every request for cross-system tracing. */
 export function logRequestContext(request: Request) {
-  const rid = request.headers.get('x-request-id') ?? request.headers.get('X-Request-Id') ?? '-';
-  const path = new URL(request.url).pathname;
-  console.log('[brain/v1]', request.method, path, 'rid=', rid);
-}
-
-export async function readJsonBody<T = Record<string, unknown>>(
-  request: Request
-): Promise<{ ok: true; data: T } | { ok: false; response: NextResponse }> {
-  try {
-    const text = await request.text();
-    if (!text || !text.trim()) return { ok: true, data: {} as T };
-    const data = JSON.parse(text) as T;
-    return { ok: true, data };
-  } catch {
-    return { ok: false, response: jsonError('validation_error', 'Invalid JSON body', 400) };
+  const rid = request.headers.get('x-request-id') || request.headers.get('X-Request-Id');
+  if (rid) {
+    console.log('[brain/v1]', rid, request.method, new URL(request.url).pathname);
   }
 }
 
