@@ -36,14 +36,20 @@ export async function POST(req: Request) {
 
         // SECURITY: Fetch the order from the database and use its total.
         // NEVER trust the amount from the client.
-        const { data: order, error: orderError } = await supabaseAdmin
+        // The client may send either a UUID (orders.id) or an order_number like "ORD-...".
+        // We must dispatch by type because PostgREST aborts an `.or()` filter when one
+        // branch references a UUID column with a non-UUID literal.
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+        const orderQuery = supabaseAdmin
             .from('orders')
-            .select('id, order_number, total, email, payment_status')
-            .or(`id.eq.${orderId},order_number.eq.${orderId}`)
-            .single();
+            .select('id, order_number, total, email, payment_status');
+
+        const { data: order, error: orderError } = isUuid
+            ? await orderQuery.eq('id', orderId).maybeSingle()
+            : await orderQuery.eq('order_number', orderId).maybeSingle();
 
         if (orderError || !order) {
-            console.error('[Payment] Order not found:', orderId);
+            console.error('[Payment] Order not found:', orderId, orderError ?? '');
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 

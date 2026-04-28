@@ -20,14 +20,11 @@ export default function PaymentPage() {
   useEffect(() => {
     async function fetchOrder() {
       try {
-        // Fetch order by ID (UUID) or order_number
-        let query = supabase
-          .from('orders')
-          .select('*')
-          .or(`id.eq.${orderId},order_number.eq.${orderId}`)
-          .single();
-
-        const { data, error: fetchError } = await query;
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(orderId));
+        const baseQuery = supabase.from('orders').select('*');
+        const { data, error: fetchError } = isUuid
+          ? await baseQuery.eq('id', orderId).maybeSingle()
+          : await baseQuery.eq('order_number', orderId).maybeSingle();
 
         if (fetchError || !data) {
           setError('Order not found. Please check your link and try again.');
