@@ -474,52 +474,6 @@ export default function ShopperHome() {
         </div>
       </section>
 
-      {/* ============================================================
-          FINAL CTA
-          ============================================================ */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-gsg-purple p-10 md:p-20 text-center shadow-2xl">
-            <div className="absolute inset-0 z-0">
-              <Image
-                src="/shopper/shopper_image_8.png"
-                alt="Happy shopping"
-                fill
-                className="object-cover opacity-20"
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-gsg-purple-dark/90 via-gsg-purple/80 to-gsg-purple/80 z-[1]" />
-            
-            <div className="relative z-10 max-w-3xl mx-auto">
-              <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight leading-tight">
-                Ready to let us do<br />the heavy lifting?
-              </h2>
-              <p className="text-xl text-purple-100 mb-12 leading-relaxed">
-                Start your list now or chat with our friendly team on WhatsApp if you have specific requests.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-5 justify-center">
-                <Link
-                  href="/shopper/shopping-list"
-                  className="inline-flex items-center justify-center gap-2 bg-gsg-accent text-gsg-purple-dark px-10 py-5 rounded-full text-xl font-bold hover:bg-orange-400 transition-transform hover:-translate-y-1 shadow-xl"
-                >
-                  <i className="ri-list-check-2" />
-                  Create shopping list
-                </Link>
-                <a
-                  href="https://wa.me/233246033792"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white px-10 py-5 rounded-full text-xl font-bold hover:bg-[#1ebd5a] transition-transform hover:-translate-y-1 shadow-xl"
-                >
-                  <i className="ri-whatsapp-line text-2xl" />
-                  Chat on WhatsApp
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
