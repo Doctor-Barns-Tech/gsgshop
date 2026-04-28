@@ -444,32 +444,52 @@ export default function ShopperHome() {
       {/* ============================================================
           FAQ TEASER
           ============================================================ */}
-      <section className="py-24 bg-gray-50 border-t border-gray-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gsg-black tracking-tight">
-              Got questions?
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            {FAQS.map((f, i) => (
-              <details
-                key={f.q}
-                className="group bg-white border border-gray-200 rounded-2xl p-6 hover:border-gsg-purple/40 transition-colors shadow-sm"
-                open={i === 0}
+      <section className="py-24 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+            <div className="lg:col-span-5 lg:sticky lg:top-24">
+              <span className="inline-block text-sm font-bold tracking-[0.2em] text-gsg-purple mb-4">
+                FAQS
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold text-gsg-black tracking-tight mb-6">
+                Got questions?
+              </h2>
+              <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-md">
+                Everything you need to know about the service. Can't find the answer you're looking for? We're just a message away.
+              </p>
+              <a
+                href="https://wa.me/233246033792"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-gsg-purple font-bold text-lg hover:text-gsg-accent transition-colors"
               >
-                <summary className="flex items-center justify-between gap-4 cursor-pointer list-none">
-                  <span className="font-bold text-gsg-black text-lg">
-                    {f.q}
-                  </span>
-                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0 group-open:bg-gsg-purple/10 transition-colors">
-                    <i className="ri-add-line text-xl text-gsg-purple group-open:rotate-45 transition-transform" />
-                  </div>
-                </summary>
-                <p className="mt-4 text-gray-600 leading-relaxed text-base pr-10">{f.a}</p>
-              </details>
-            ))}
+                Chat with us on WhatsApp <i className="ri-arrow-right-line" />
+              </a>
+            </div>
+
+            <div className="lg:col-span-7">
+              <div className="divide-y divide-gray-200 border-t border-b lg:border-t-0 border-gray-200">
+                {FAQS.map((f, i) => (
+                  <details
+                    key={f.q}
+                    className="group py-6 md:py-8"
+                    open={i === 0}
+                  >
+                    <summary className="flex items-center justify-between gap-4 cursor-pointer list-none outline-none">
+                      <span className="font-bold text-gsg-black text-xl md:text-2xl group-hover:text-gsg-purple transition-colors">
+                        {f.q}
+                      </span>
+                      <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center shrink-0 group-hover:border-gsg-purple group-open:border-gsg-purple group-open:bg-gsg-purple group-open:text-white text-gray-400 transition-all duration-300">
+                        <i className="ri-add-line text-xl group-open:rotate-45 transition-transform" />
+                      </div>
+                    </summary>
+                    <p className="mt-5 text-gray-600 leading-relaxed text-lg pr-8 md:pr-12">
+                      {f.a}
+                    </p>
+                  </details>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
