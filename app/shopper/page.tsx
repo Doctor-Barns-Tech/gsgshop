@@ -272,7 +272,7 @@ export default function ShopperHome() {
           PRICING TRANSPARENCY CALLOUT WITH LIFESTYLE IMAGE
           ============================================================ */}
       <section className="py-16 bg-white overflow-hidden">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gsg-purple rounded-[2rem] relative shadow-2xl flex flex-col lg:flex-row overflow-hidden">
             
             {/* Left Content */}
