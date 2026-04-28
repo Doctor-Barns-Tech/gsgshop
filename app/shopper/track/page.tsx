@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
 const STATUS_STEPS = [
   'SUBMITTED', 'REVIEWING', 'SOURCING', 'AWAITING_CONFIRMATION', 'PAID', 'SHOPPING', 'OUT_FOR_DELIVERY', 'DELIVERED'
@@ -59,9 +60,18 @@ function TrackContent() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gsg-purple py-16 md:py-24">
-        <div className="absolute inset-0 bg-gradient-to-br from-gsg-purple-dark/95 via-gsg-purple to-gsg-purple-dark/90 z-[1]" />
-        <div className="absolute inset-0 opacity-15 z-[2]" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+      <section className="relative overflow-hidden bg-gsg-black py-16 md:py-24">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/shopper/shopper_image_3.png"
+            alt="Track your shopping request"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        </div>
+        <div className="absolute inset-0 bg-black/30 z-[1]" />
         
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-white text-sm font-medium mb-6 ring-1 ring-white/30 shadow-lg">

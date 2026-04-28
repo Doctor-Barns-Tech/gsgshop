@@ -130,7 +130,7 @@ export default function ShopperHome() {
       {/* ============================================================
           HERO
           ============================================================ */}
-      <section className="relative overflow-hidden bg-gsg-purple min-h-[600px] flex items-center">
+      <section className="relative overflow-hidden bg-gsg-black min-h-[600px] flex items-center">
         <div className="absolute inset-0 z-0">
           <Image
             src="/shopper/shopper_image_2.png"
@@ -141,7 +141,7 @@ export default function ShopperHome() {
             sizes="100vw"
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-gsg-purple-dark/95 via-gsg-purple-dark/80 to-transparent z-[1]" />
+        <div className="absolute inset-0 bg-black/30 z-[1]" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 z-10 w-full">
           <div className="max-w-2xl">
