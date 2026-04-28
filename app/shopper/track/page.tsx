@@ -63,7 +63,7 @@ function TrackContent() {
       <section className="relative overflow-hidden bg-gsg-black py-16 md:py-24">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/shopper/shopper_image_3.png"
+            src="/shopper/shopper_image_3.webp"
             alt="Track your shopping request"
             fill
             className="object-cover"

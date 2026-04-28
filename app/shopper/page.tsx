@@ -6,19 +6,19 @@ const STEPS = [
     step: '01',
     title: 'Create your list',
     text: 'Add item names, quantities, and your estimated prices. Add notes for anything specific. You can drop everything in our easy-to-use list builder.',
-    image: '/shopper/shopper_image_5.png',
+    image: '/shopper/shopper_image_5.webp',
   },
   {
     step: '02',
     title: 'We source for you',
     text: 'We buy at the exact source price with 5% commission or less. No hidden markups. Our professional shoppers confirm the quality and totals before purchasing.',
-    image: '/shopper/shopper_image_9.png',
+    image: '/shopper/shopper_image_9.webp',
   },
   {
     step: '03',
     title: 'Pay & receive',
     text: 'Confirm your final totals, pay securely, and get delivery straight to your preferred location. We provide real-time updates via WhatsApp every step of the way.',
-    image: '/shopper/shopper_image_4.png',
+    image: '/shopper/shopper_image_4.webp',
   },
 ];
 
@@ -27,25 +27,25 @@ const SOURCE_CATEGORIES = [
     name: 'Convenience Goods',
     desc: 'Everyday essentials from trusted shops and markets across the city.',
     examples: ['Groceries', 'Toiletries', 'Drinks'],
-    image: '/shopper/shopper_image_8.png',
+    image: '/shopper/shopper_image_8.webp',
   },
   {
     name: 'Specialty Goods',
     desc: 'Unique, imported, and brand-specific items hard to find elsewhere.',
     examples: ['Imported brands', 'Gifts', 'Custom finds'],
-    image: '/shopper/shopper_image_7.png',
+    image: '/shopper/shopper_image_7.webp',
   },
   {
     name: 'Urgent Runs',
     desc: 'Medicines and urgent essentials that just need to arrive — fast.',
     examples: ['Pharmacy items', 'First-aid', 'Emergency'],
-    image: '/shopper/shopper_image_1.png',
+    image: '/shopper/shopper_image_1.webp',
   },
   {
     name: 'Building Materials',
     desc: 'Construction and renovation supplies sourced and delivered to site.',
     examples: ['Cement & blocks', 'Tools', 'Finishing'],
-    image: '/shopper/shopper_image_6.png',
+    image: '/shopper/shopper_image_6.webp',
   },
 ];
 
@@ -60,17 +60,17 @@ const REVIEWS = [
   {
     name: 'Akosua M.',
     role: 'Busy mum, East Legon',
-    avatar: '/shopper/shopper_image_10.png',
+    avatar: '/shopper/shopper_image_10.webp',
     rating: 5,
     quote:
       'I sent my Sunday market list at 7am and had everything by lunch. The receipt matched exactly. Game changer.',
     featured: true,
-    image: '/shopper/shopper_image_8.png',
+    image: '/shopper/shopper_image_8.webp',
   },
   {
     name: 'Naa D.',
     role: 'Restaurant owner',
-    avatar: '/shopper/shopper_image_3.png',
+    avatar: '/shopper/shopper_image_3.webp',
     rating: 5,
     quote:
       'My personal shopper does my produce run twice a week. The 5% fee saves me a whole afternoon.',
@@ -78,7 +78,7 @@ const REVIEWS = [
   {
     name: 'Kwame S.',
     role: 'Site engineer',
-    avatar: '/shopper/shopper_image_6.png',
+    avatar: '/shopper/shopper_image_6.webp',
     rating: 5,
     quote:
       'Got tools and PPE delivered straight to site. Zero markup, very transparent.',
@@ -86,7 +86,7 @@ const REVIEWS = [
   {
     name: 'Ama K.',
     role: 'Working professional',
-    avatar: '/shopper/shopper_image_7.png',
+    avatar: '/shopper/shopper_image_7.webp',
     rating: 5,
     quote:
       'Everything came in beautiful packaging. They even called to confirm a brand swap. So thoughtful.',
@@ -117,7 +117,7 @@ export default function ShopperHome() {
       <section className="relative overflow-hidden bg-gsg-black min-h-[600px] flex items-center">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/shopper/shopper_image_2.png"
+            src="/shopper/shopper_image_2.webp"
             alt="Professional personal shopper"
             fill
             className="object-cover"
@@ -306,7 +306,7 @@ export default function ShopperHome() {
       <section className="py-20 md:py-24 bg-gsg-black text-white relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/shopper/shopper_image_4.png"
+            src="/shopper/shopper_image_4.webp"
             alt="Personal Shopper Delivery"
             fill
             className="object-cover"

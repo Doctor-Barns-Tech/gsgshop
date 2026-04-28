@@ -38,7 +38,7 @@ export default function HowItWorks() {
       <section className="relative overflow-hidden py-24 md:py-32 flex items-center justify-center min-h-[400px]">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/shopper/shopper_image_8.png"
+            src="/shopper/shopper_image_8.webp"
             alt="How It Works Background"
             fill
             className="object-cover"
