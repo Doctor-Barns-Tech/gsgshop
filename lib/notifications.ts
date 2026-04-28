@@ -154,7 +154,7 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
             },
             body: JSON.stringify({
                 type: 1,
-                senderid: 'GSG',
+                senderid: process.env.SMS_SENDER_ID || 'GSGBRANDS',
                 messages: [
                     {
                         recipient: recipient,
