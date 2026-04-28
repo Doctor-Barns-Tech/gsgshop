@@ -49,22 +49,6 @@ const SOURCE_CATEGORIES = [
   },
 ];
 
-const COMPARISON_OLD = [
-  'Hours lost queuing at busy markets',
-  'Carrying heavy bags in the heat',
-  'Guessing prices, paying tourist rates',
-  'Settling for what you can find',
-  'No proof of what was paid',
-];
-
-const COMPARISON_NEW = [
-  'Send your list — relax at home',
-  'Doorstep delivery in branded bags',
-  'Source price + transparent 5% fee',
-  'Hand-picked produce and rare finds',
-  'Detailed receipts on request',
-];
-
 const STATS = [
   { value: '5', unit: '%', label: 'Commission or less on every order' },
   { value: '24', unit: '/7', label: 'WhatsApp support, real humans' },
@@ -301,84 +285,6 @@ export default function ShopperHome() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================
-          OLD WAY vs OUR WAY — Comparison
-          ============================================================ */}
-      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14 max-w-3xl mx-auto">
-            <span className="inline-block text-sm font-bold tracking-[0.2em] text-gsg-purple mb-3">
-              WHY SWITCH
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gsg-black tracking-tight mb-4">
-              The old way vs <span className="text-gsg-purple">our way.</span>
-            </h2>
-            <p className="text-lg text-gray-600">
-              Same goods. Better experience. Total transparency.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-5 lg:gap-7 max-w-5xl mx-auto">
-            {/* OLD WAY */}
-            <div className="bg-white border-2 border-gray-200 rounded-3xl p-8 md:p-10 relative">
-              <div className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.2em] text-gray-400 uppercase mb-5">
-                <i className="ri-time-line" />
-                The Old Way
-              </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-400 mb-8">
-                Doing it yourself
-              </h3>
-              <ul className="space-y-4">
-                {COMPARISON_OLD.map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <div className="w-6 h-6 shrink-0 rounded-full bg-red-100 flex items-center justify-center mt-0.5">
-                      <i className="ri-close-line text-red-500 text-base" />
-                    </div>
-                    <span className="text-base text-gray-500 line-through">
-                      {item}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* OUR WAY */}
-            <div className="bg-gsg-purple text-white rounded-3xl p-8 md:p-10 relative shadow-2xl ring-1 ring-gsg-purple-dark">
-              <div
-                className="absolute inset-0 opacity-15 rounded-3xl pointer-events-none"
-                style={{
-                  backgroundImage: 'radial-gradient(white 1px, transparent 1px)',
-                  backgroundSize: '20px 20px',
-                }}
-              />
-              <div className="relative">
-                <div className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.2em] text-gsg-accent uppercase mb-5">
-                  <i className="ri-magic-line" />
-                  With My Personal Shopper
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-8">
-                  A premium personal experience
-                </h3>
-                <ul className="space-y-4">
-                  {COMPARISON_NEW.map((item) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <div className="w-6 h-6 shrink-0 rounded-full bg-gsg-accent flex items-center justify-center mt-0.5">
-                        <i className="ri-check-line text-gsg-purple-dark text-base font-bold" />
-                      </div>
-                      <span className="text-base text-white">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="absolute -top-3 -right-3 inline-flex items-center gap-1.5 bg-gsg-accent text-gsg-purple-dark text-[11px] font-bold uppercase tracking-[0.18em] px-4 py-2 rounded-full shadow-lg">
-                <i className="ri-thumb-up-fill" />
-                Recommended
-              </div>
-            </div>
           </div>
         </div>
       </section>
