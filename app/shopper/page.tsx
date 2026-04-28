@@ -176,52 +176,63 @@ export default function ShopperHome() {
       </section>
 
       {/* ============================================================
-          HOW IT WORKS — Alternating Layout
+          HOW IT WORKS — Grid Layout
           ============================================================ */}
       <section className="py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
+          <div className="text-center mb-16 max-w-3xl mx-auto">
             <span className="inline-block text-sm font-bold tracking-[0.2em] text-gsg-purple mb-3">
               THE PROCESS
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gsg-black tracking-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-gsg-black tracking-tight mb-4">
               How your shopping gets done
             </h2>
+            <p className="text-lg text-gray-600">
+              Three simple steps to reclaim your time. We handle the rest.
+            </p>
           </div>
 
-          <div className="space-y-24">
+          <div className="grid md:grid-cols-3 gap-8 lg:gap-12 relative">
+            {/* Connecting line for desktop */}
+            <div className="hidden md:block absolute top-[120px] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-transparent via-gray-200 to-transparent z-0" />
+
             {STEPS.map((s, idx) => (
-              <div key={s.step} className={`flex flex-col ${idx % 2 !== 0 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 lg:gap-20`}>
-                <div className="w-full md:w-1/2">
-                  <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden shadow-2xl">
-                    <Image
-                      src={s.image}
-                      alt={s.title}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-700"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                    <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[2rem]" />
+              <div key={s.step} className="relative z-10 flex flex-col items-center text-center group">
+                <div className="relative w-full aspect-[4/3] md:aspect-square max-w-[280px] rounded-3xl overflow-hidden shadow-lg mb-8 transition-transform duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl">
+                  <Image
+                    src={s.image}
+                    alt={s.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-4 group-hover:translate-y-0">
+                    <span className="bg-white/90 backdrop-blur-sm text-gsg-purple text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full">
+                      Step {s.step}
+                    </span>
                   </div>
                 </div>
-                <div className="w-full md:w-1/2">
-                  <p className="text-6xl font-black text-gray-100 mb-4 tracking-tighter">
-                    {s.step}
-                  </p>
-                  <h3 className="font-bold text-gsg-black text-3xl md:text-4xl mb-6">{s.title}</h3>
-                  <p className="text-lg text-gray-600 leading-relaxed mb-8">{s.text}</p>
-                  
-                  {idx === STEPS.length - 1 && (
-                    <Link
-                      href="/shopper/shopping-list"
-                      className="inline-flex items-center gap-2 text-gsg-purple font-bold text-lg hover:text-gsg-accent transition-colors"
-                    >
-                      Start your list now <i className="ri-arrow-right-line" />
-                    </Link>
-                  )}
+
+                <div className="w-12 h-12 rounded-full bg-gsg-purple text-white flex items-center justify-center text-xl font-bold mb-5 shadow-md ring-4 ring-white">
+                  {idx + 1}
                 </div>
+
+                <h3 className="font-bold text-gsg-black text-2xl mb-3">{s.title}</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {s.text}
+                </p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-16 text-center">
+            <Link
+              href="/shopper/shopping-list"
+              className="inline-flex items-center gap-2 bg-gsg-purple text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-gsg-purple-dark transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              Start your list now <i className="ri-arrow-right-line" />
+            </Link>
           </div>
         </div>
       </section>
