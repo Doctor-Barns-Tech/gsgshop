@@ -57,36 +57,70 @@ function TrackContent() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gsg-black mb-4">Track Your Request</h1>
-          <p className="text-gray-600">Enter your Request ID or Phone Number to check the status.</p>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gsg-purple py-16 md:py-24">
+        <div className="absolute inset-0 bg-gradient-to-br from-gsg-purple-dark/95 via-gsg-purple to-gsg-purple-dark/90 z-[1]" />
+        <div className="absolute inset-0 opacity-15 z-[2]" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-white text-sm font-medium mb-6 ring-1 ring-white/30 shadow-lg">
+            <i className="ri-map-pin-line text-gsg-accent" />
+            <span>Live Updates</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">Track Your Request</h1>
+          <p className="text-lg md:text-xl text-purple-100 max-w-2xl mx-auto leading-relaxed">
+            Enter your Request ID or Phone Number to check the status of your shopping list in real-time.
+          </p>
         </div>
+      </section>
 
-        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 mb-8">
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-            <input 
-              type="text" 
-              placeholder="Request ID (e.g. 123e4567-...)" 
-              value={searchId}
-              onChange={e => { setSearchId(e.target.value); setSearchPhone(''); }}
-              className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gsg-purple outline-none"
-            />
-            <div className="flex items-center justify-center text-gray-400 font-medium">OR</div>
-            <input 
-              type="tel" 
-              placeholder="Phone Number" 
-              value={searchPhone}
-              onChange={e => { setSearchPhone(e.target.value); setSearchId(''); }}
-              className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gsg-purple outline-none"
-            />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20 pb-20">
+        <div className="bg-white p-6 md:p-10 rounded-[2rem] shadow-2xl border border-gray-100 mb-10">
+          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-5 items-center">
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i className="ri-hashtag text-gray-400 text-xl" />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Request ID (e.g. 123e4567-...)" 
+                value={searchId}
+                onChange={e => { setSearchId(e.target.value); setSearchPhone(''); }}
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-gsg-purple focus:border-transparent outline-none transition-all text-gray-800 text-base"
+              />
+            </div>
+            
+            <div className="flex items-center justify-center shrink-0">
+              <span className="bg-gray-100 text-gray-500 text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wider uppercase">OR</span>
+            </div>
+            
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i className="ri-phone-line text-gray-400 text-xl" />
+              </div>
+              <input 
+                type="tel" 
+                placeholder="Phone Number" 
+                value={searchPhone}
+                onChange={e => { setSearchPhone(e.target.value); setSearchId(''); }}
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-gsg-purple focus:border-transparent outline-none transition-all text-gray-800 text-base"
+              />
+            </div>
+            
             <button 
               type="submit" 
               disabled={loading || (!searchId && !searchPhone)}
-              className="bg-gsg-black hover:bg-gsg-purple text-white px-8 py-3 rounded-lg font-bold transition-colors disabled:opacity-50"
+              className="w-full md:w-auto bg-gsg-black hover:bg-gsg-purple text-white px-10 py-4 rounded-xl font-bold transition-all disabled:opacity-50 disabled:hover:bg-gsg-black flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 shrink-0 text-base"
             >
-              {loading ? 'Searching...' : 'Track'}
+              {loading ? (
+                <i className="ri-loader-4-line animate-spin text-xl" />
+              ) : (
+                <>
+                  <i className="ri-search-line text-lg" />
+                  Track
+                </>
+              )}
             </button>
           </form>
         </div>
