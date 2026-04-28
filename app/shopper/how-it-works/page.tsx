@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 const STEPS = [
   {
@@ -34,9 +35,19 @@ const STEPS = [
 export default function HowItWorks() {
   return (
     <div className="bg-gray-50 min-h-screen">
-      <section className="relative overflow-hidden bg-gradient-to-br from-gsg-purple to-gsg-purple-dark py-16 md:py-20">
-        <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative overflow-hidden py-24 md:py-32 flex items-center justify-center min-h-[400px]">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/shopper/shopper_image_8.png"
+            alt="How It Works Background"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        </div>
+        <div className="absolute inset-0 bg-black/30 z-[1]" />
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 text-white text-sm font-medium mb-6">
             <i className="ri-magic-line" />
             My Personal Shopper by GSG
