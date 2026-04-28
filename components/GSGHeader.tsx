@@ -6,6 +6,7 @@ import Image from 'next/image';
 import MiniCart from './MiniCart';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
+import { shopperUrl } from '@/lib/site-urls';
 
 const MAIN_NAV = [
   { label: 'Home', href: '/' },
@@ -262,10 +263,13 @@ export default function GSGHeader() {
                 <i className="ri-flashlight-fill" />
                 Sole Express
               </Link>
-              <Link href="/shopper" className="flex items-center gap-2 text-sm font-medium text-orange-500 hover:text-orange-600">
+              <a
+                href={shopperUrl('/')}
+                className="flex items-center gap-2 text-sm font-medium text-orange-500 hover:text-orange-600"
+              >
                 <i className="ri-vip-crown-fill" />
                 Personal Shopper
-              </Link>
+              </a>
             </div>
           </div>
         </div>

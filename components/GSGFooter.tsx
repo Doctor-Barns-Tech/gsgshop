@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { shopperUrl } from '@/lib/site-urls';
 
 const SUPPORT_PHONES = ['+233 (0) 246 033 792', '+233 (0) 579 033 792'];
 const TELEGRAM = 'https://t.me/gsgbrandsgh';
@@ -64,7 +65,7 @@ export default function GSGFooter() {
               <li><Link href="/categories" className="hover:text-gsg-accent transition-colors">Categories</Link></li>
               <li><Link href="/shipping#sole-express" className="hover:text-gsg-accent transition-colors">Sole Express</Link></li>
               <li><Link href="/gift-card" className="hover:text-gsg-accent transition-colors">Gift Cards</Link></li>
-              <li><Link href="/shopper" className="hover:text-gsg-accent transition-colors">Personal Shopper</Link></li>
+              <li><a href={shopperUrl('/')} className="hover:text-gsg-accent transition-colors">Personal Shopper</a></li>
             </ul>
           </div>
 

@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { shopperUrl } from '@/lib/site-urls';
 
 export default function CheckoutPage() {
   usePageTitle('Checkout');
@@ -568,7 +569,7 @@ export default function CheckoutPage() {
                   {deliveryMethod === 'personal-shopper' && (
                     <p className="mt-4 text-sm text-gray-600 bg-blue-50 p-4 rounded-xl border border-blue-100">
                       <i className="ri-information-fill text-blue-500 mr-1"></i>
-                      <a href="/shopper/shopping-list" className="text-blue-700 font-bold hover:underline">Go to My Personal Shopper</a> to add items to your list.
+                      <a href={shopperUrl('/shopping-list')} className="text-blue-700 font-bold hover:underline">Go to My Personal Shopper</a> to add items to your list.
                     </p>
                   )}
 

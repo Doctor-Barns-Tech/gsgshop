@@ -9,6 +9,7 @@ import ProductCardSkeleton from '@/components/skeletons/ProductCardSkeleton';
 import AnimatedSection, { AnimatedGrid } from '@/components/AnimatedSection';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import HomeHeroCategoryNav, { type HomeCategoryNode } from '@/components/HomeHeroCategoryNav';
+import { shopperUrl } from '@/lib/site-urls';
 
 const MAIN_GOODS_SLUGS = [
   'grocery', 'mobile', 'stationery', 'lighting-battery', 'food-items', 'nonfood-items',
@@ -189,9 +190,9 @@ export default function Home() {
                  <span className="text-xs font-bold text-gsg-purple uppercase tracking-wider mb-2">Personal Shopper</span>
                  <h3 className="text-xl font-bold text-gsg-black mb-2 leading-tight">We shop for you!</h3>
                  <p className="text-sm text-gray-600 mb-5 line-clamp-2">Get exactly what you need at market price.</p>
-                 <Link href="/shopper" className="text-sm font-bold text-white bg-gsg-purple px-4 py-2.5 rounded-xl text-center hover:bg-gsg-purple-dark transition-colors z-10">
+                 <a href={shopperUrl('/')} className="text-sm font-bold text-white bg-gsg-purple px-4 py-2.5 rounded-xl text-center hover:bg-gsg-purple-dark transition-colors z-10">
                    Create List
-                 </Link>
+                 </a>
               </div>
             </div>
           </div>
@@ -246,7 +247,7 @@ export default function Home() {
               </div>
             </Link>
 
-            <Link href="/shopper" className="group relative flex-none w-[140px] sm:w-[160px] aspect-[4/5] snap-start rounded-2xl overflow-hidden bg-amber-50 shadow-sm border border-amber-100/80 hover:shadow-md transition-all block">
+            <a href={shopperUrl('/')} className="group relative flex-none w-[140px] sm:w-[160px] aspect-[4/5] snap-start rounded-2xl overflow-hidden bg-amber-50 shadow-sm border border-amber-100/80 hover:shadow-md transition-all block">
               <div className="absolute inset-0 bg-orange-50 group-hover:scale-105 transition-transform duration-500">
                 <Image 
                   src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" 
@@ -260,7 +261,7 @@ export default function Home() {
               <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
                 <p className="font-bold text-white text-center text-sm">Personal Shopper</p>
               </div>
-            </Link>
+            </a>
 
             {showMainGoods.slice(0, 12).map((cat) => (
               <Link
