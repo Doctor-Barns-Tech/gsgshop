@@ -9,6 +9,10 @@ function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
   const paymentSuccess = searchParams.get('payment_success');
+  // Moolre echoes the externalref it stored on its side back to us as
+  // ?reference=ORD-...-R<timestamp>. We forward it to /verify so the lookup
+  // hits the exact transaction.
+  const moolreReference = searchParams.get('reference');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(true);
@@ -34,7 +38,6 @@ function OrderSuccessContent() {
         if (error) throw error;
         setOrder(orderData);
 
-        // If redirected from payment and order is still pending, try to verify
         if (paymentSuccess === 'true' && orderData && orderData.payment_status !== 'paid') {
           verifyPayment(orderNumber, orderData);
         }
@@ -47,40 +50,40 @@ function OrderSuccessContent() {
     fetchOrder();
   }, [orderNumber]);
 
-  // Payment verification - called when user is redirected from Moolre with payment_success=true
-  const verifyPayment = async (orderNum: string, initialOrder: any) => {
+  const verifyPayment = async (orderNum: string, _initialOrder: any) => {
     setVerifying(true);
-    
-    // Wait 3 seconds to give the callback a chance to process first
+
+    // Give the Moolre webhook a head start — most of the time it fires first
+    // and we can short-circuit by just re-reading the order.
     await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Re-fetch order to check if callback already updated it
+
     const { data: refreshed } = await supabase
       .from('orders')
       .select('*, order_items (*)')
       .eq('order_number', orderNum)
       .single();
-    
+
     if (refreshed?.payment_status === 'paid') {
       setOrder(refreshed);
       setVerifying(false);
       return;
     }
 
-    // Callback hasn't fired - verify via our endpoint
-    // Verify payment via Moolre API — we no longer trust the redirect alone
+    // Webhook didn't make it; ask our backend to confirm with Moolre directly.
     try {
       const res = await fetch('/api/payment/moolre/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderNumber: orderNum })
+        body: JSON.stringify({
+          orderNumber: orderNum,
+          reference: moolreReference || undefined,
+        })
       });
-      
+
       const result = await res.json();
       console.log('Payment verification result:', result);
-      
+
       if (result.success && result.payment_status === 'paid') {
-        // Re-fetch full order data
         const { data: updated } = await supabase
           .from('orders')
           .select('*, order_items (*)')

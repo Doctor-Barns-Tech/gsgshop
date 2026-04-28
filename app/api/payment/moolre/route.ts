@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
         const orderQuery = supabaseAdmin
             .from('orders')
-            .select('id, order_number, total, email, payment_status');
+            .select('id, order_number, total, email, payment_status, metadata');
 
         const { data: order, error: orderError } = isUuid
             ? await orderQuery.eq('id', orderId).maybeSingle()
@@ -105,7 +105,27 @@ export async function POST(req: Request) {
         console.log('[Payment] Response status:', result.status, '| Has URL:', !!result.data?.authorization_url);
 
         if (result.status === 1 && result.data?.authorization_url) {
-            return NextResponse.json({ success: true, url: result.data.authorization_url, reference: result.data.reference });
+            // Persist the unique ref we sent to Moolre so /verify can look the
+            // transaction up later. We don't fail the request if this write
+            // fails — the redirect URL still carries `reference` as a backup.
+            try {
+                const previousMeta = (order as any).metadata || {};
+                await supabaseAdmin
+                    .from('orders')
+                    .update({
+                        metadata: {
+                            ...previousMeta,
+                            payment_method: 'moolre',
+                            last_payment_ref: uniqueRef,
+                            last_payment_attempt_at: new Date().toISOString(),
+                        },
+                    })
+                    .eq('id', (order as any).id);
+            } catch (metaErr: any) {
+                console.warn('[Payment] Failed to persist last_payment_ref:', metaErr?.message);
+            }
+
+            return NextResponse.json({ success: true, url: result.data.authorization_url, reference: uniqueRef });
         } else {
             return NextResponse.json({ success: false, message: result.message || 'Failed to generate payment link' }, { status: 400 });
         }

@@ -112,9 +112,10 @@ export async function POST(req: Request) {
             'callback';
 
         // Payment status: body.status === 1 means API call succeeded,
-        // body.data.txtstatus === 1 means transaction was successful
+        // body.data.txtstatus / data.txstatus === 1 means transaction was successful
+        // (different Moolre endpoints spell the field differently)
         const apiStatus = body.status;
-        const txStatus = data.txtstatus;
+        const txStatus = data.txtstatus ?? data.txstatus;
         const messageStr = String(body.message || '').toLowerCase();
 
         console.log('[Callback] Order ref:', merchantOrderRef,
