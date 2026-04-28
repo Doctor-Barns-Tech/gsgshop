@@ -271,34 +271,34 @@ export default function ShopperHome() {
       {/* ============================================================
           PRICING TRANSPARENCY CALLOUT WITH LIFESTYLE IMAGE
           ============================================================ */}
-      <section className="py-24 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gsg-purple rounded-[2.5rem] relative shadow-2xl flex flex-col lg:flex-row overflow-hidden">
+      <section className="py-16 bg-white overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gsg-purple rounded-[2rem] relative shadow-2xl flex flex-col lg:flex-row overflow-hidden">
             
             {/* Left Content */}
-            <div className="p-10 md:p-16 lg:w-3/5 z-10">
-              <span className="inline-block text-sm font-bold tracking-[0.2em] text-gsg-accent mb-4">
+            <div className="p-8 md:p-10 lg:w-3/5 z-10">
+              <span className="inline-block text-xs font-bold tracking-[0.2em] text-gsg-accent mb-3">
                 TRANSPARENT PRICING
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
                 You pay the source price.<br />
                 Plus a fair commission.
               </h2>
-              <p className="text-xl text-purple-100 mb-10 max-w-lg leading-relaxed">
+              <p className="text-lg text-purple-100 mb-8 max-w-lg leading-relaxed">
                 No hidden markups on goods. We charge <strong className="text-white">5% commission or less</strong> on the item subtotal, plus delivery based on distance. That's it.
               </p>
               
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 md:p-8 max-w-md">
-                <div className="flex items-center justify-between mb-6">
-                  <p className="text-sm font-bold tracking-[0.2em] text-white">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 md:p-6 max-w-md">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs font-bold tracking-[0.2em] text-white">
                     SAMPLE RECEIPT
                   </p>
-                  <span className="inline-flex items-center gap-1.5 text-xs text-gsg-purple bg-gsg-accent px-3 py-1.5 rounded-full font-bold">
+                  <span className="inline-flex items-center gap-1.5 text-[10px] text-gsg-purple bg-gsg-accent px-2.5 py-1 rounded-full font-bold uppercase">
                     <i className="ri-file-list-3-line" />
                     Receipts on request
                   </span>
                 </div>
-                <div className="space-y-4 text-base">
+                <div className="space-y-3 text-sm">
                   <div className="flex justify-between text-purple-50">
                     <span>Items at source price</span>
                     <span className="font-semibold">GH₵ 200.00</span>
@@ -311,8 +311,8 @@ export default function ShopperHome() {
                     <span>Delivery (in Accra)</span>
                     <span className="font-semibold">GH₵ 25.00</span>
                   </div>
-                  <div className="border-t border-white/20 my-4" />
-                  <div className="flex justify-between text-white text-xl">
+                  <div className="border-t border-white/20 my-3" />
+                  <div className="flex justify-between text-white text-lg">
                     <span className="font-bold">You pay</span>
                     <span className="font-bold text-gsg-accent">GH₵ 235.00</span>
                   </div>
@@ -321,7 +321,7 @@ export default function ShopperHome() {
             </div>
 
             {/* Right Image */}
-            <div className="lg:w-2/5 min-h-[400px] relative">
+            <div className="lg:w-2/5 min-h-[300px] relative">
               <Image
                 src="/shopper/shopper_image_3.png"
                 alt="Businesswoman checking receipt"
