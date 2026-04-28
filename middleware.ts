@@ -13,26 +13,71 @@ export async function middleware(request: NextRequest) {
     // ============================================================
     // Host-based routing for Shopper Subdomain
     // ============================================================
-    // If we are on the shopper subdomain, we want to rewrite requests to the /shopper route group
-    // Example: shopper.gsgbrands.com.gh/ -> /shopper
-    // Example: shopper.gsgbrands.com.gh/how-it-works -> /shopper/how-it-works
-    const isShopperDomain = hostname.startsWith('shopper.');
-
-    // We don't want to rewrite API routes, admin routes, or static files
+    // We have two sites in one Next.js app:
+    //   - goods.gsgbrands.com.gh   -> the storefront (route root)
+    //   - shopper.gsgbrands.com.gh -> the personal-shopper site
+    //                                  (lives in the /shopper route group)
+    //
+    // Three rules are applied below in order so users always end up at clean
+    // canonical URLs without us having to touch every <Link href="/shopper/...">
+    // (which would break path-based access in local dev):
+    //
+    //   1. If the request hits the goods host with a /shopper/* path, and the
+    //      shopper subdomain is configured, redirect cross-host so the user
+    //      lands on the canonical subdomain URL.
+    //   2. If the request hits the shopper host with a /shopper/* path,
+    //      redirect to the bare path on the same host (drop the /shopper
+    //      prefix from the URL bar).
+    //   3. If the request hits the shopper host with a non-/shopper path
+    //      (e.g. /how-it-works), silently rewrite to /shopper/<path> so the
+    //      route group resolves. URL bar stays clean.
+    //
+    // Localhost / Vercel preview hosts hit none of these and continue to work
+    // through path-based access at /shopper/*.
     const isApiRoute = pathname.startsWith('/api/');
     const isAdminRoute = pathname.startsWith('/admin');
     const isStaticFile = pathname.startsWith('/_next') || pathname.includes('.');
 
-    if (isShopperDomain && !isApiRoute && !isAdminRoute && !isStaticFile) {
-        // If the path doesn't already start with /shopper, rewrite it
-        if (!pathname.startsWith('/shopper')) {
-            const newUrl = new URL(`/shopper${pathname === '/' ? '' : pathname}`, request.url);
+    const shopperHostFromEnv = (process.env.NEXT_PUBLIC_SITE_SHOPPER_URL || '')
+        .replace(/^https?:\/\//, '')
+        .replace(/\/.*$/, '')
+        .toLowerCase();
+    const goodsHostFromEnv = (process.env.NEXT_PUBLIC_SITE_GOODS_URL || '')
+        .replace(/^https?:\/\//, '')
+        .replace(/\/.*$/, '')
+        .toLowerCase();
+    const hostnameLower = hostname.toLowerCase();
+    const isShopperHost = hostnameLower.startsWith('shopper.') ||
+        (shopperHostFromEnv ? hostnameLower === shopperHostFromEnv : false);
+    const isGoodsHost = goodsHostFromEnv ? hostnameLower === goodsHostFromEnv : false;
+
+    if (!isApiRoute && !isAdminRoute && !isStaticFile) {
+        // Rule 1: goods.../shopper/X  ->  shopper.../X (cross-host canonical)
+        if (isGoodsHost && pathname.startsWith('/shopper') && shopperHostFromEnv) {
+            const cleanPath = pathname.slice('/shopper'.length) || '/';
+            const target = new URL(`https://${shopperHostFromEnv}${cleanPath}`);
+            target.search = request.nextUrl.search;
+            return NextResponse.redirect(target, 308);
+        }
+
+        // Rule 2: shopper.../shopper/X  ->  shopper.../X  (drop ugly prefix)
+        if (isShopperHost && pathname.startsWith('/shopper')) {
+            const cleanPath = pathname.slice('/shopper'.length) || '/';
+            const target = new URL(cleanPath, request.url);
+            target.search = request.nextUrl.search;
+            return NextResponse.redirect(target, 308);
+        }
+
+        // Rule 3: shopper.../X  ->  rewrite to /shopper/X (transparent)
+        if (isShopperHost && !pathname.startsWith('/shopper')) {
+            const newUrl = new URL(
+                `/shopper${pathname === '/' ? '' : pathname}`,
+                request.url,
+            );
+            newUrl.search = request.nextUrl.search;
             return NextResponse.rewrite(newUrl);
         }
     }
-
-    // /shopper is accessible on ALL domains (localhost, Vercel, etc.) until subdomain is configured.
-    // Later: optionally redirect /shopper to subdomain when both domains are live.
 
     // ============================================================
     // Security headers for ALL routes
