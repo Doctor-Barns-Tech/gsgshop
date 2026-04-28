@@ -386,51 +386,54 @@ export default function ShopperHome() {
       {/* ============================================================
           BY THE NUMBERS — Stats strip
           ============================================================ */}
-      <section className="py-24 md:py-28 bg-gsg-black text-white relative overflow-hidden">
+      <section className="py-20 md:py-24 bg-gsg-black text-white relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/shopper/shopper_image_4.png"
+            alt="Personal Shopper Delivery"
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+        </div>
+        <div className="absolute inset-0 bg-black/35 z-[1]" />
+        
         <div
-          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          className="absolute inset-0 opacity-[0.1] pointer-events-none z-[2]"
           style={{
             backgroundImage: 'radial-gradient(white 1px, transparent 1px)',
             backgroundSize: '28px 28px',
           }}
         />
-        <div
-          className="absolute -top-32 -right-32 w-96 h-96 bg-gsg-purple/40 rounded-full blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
-        <div
-          className="absolute -bottom-32 -left-32 w-96 h-96 bg-gsg-accent/30 rounded-full blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 max-w-3xl mx-auto">
-            <span className="inline-block text-sm font-bold tracking-[0.2em] text-gsg-accent mb-3">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 max-w-3xl mx-auto">
+            <span className="inline-block text-xs md:text-sm font-bold tracking-[0.2em] text-gsg-accent mb-3">
               BY THE NUMBERS
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               A service built on{' '}
               <span className="text-gsg-accent">trust.</span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12 md:gap-y-0">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-y-0">
             {STATS.map((s, idx) => (
               <div
                 key={s.label}
-                className={`text-left pl-5 md:pl-7 border-l-2 border-gsg-accent/40 ${
-                  idx === 0 ? '' : 'lg:border-l-2'
+                className={`text-left pl-5 md:pl-6 border-l border-white/20 ${
+                  idx === 0 ? '' : 'lg:border-l'
                 }`}
               >
-                <div className="flex items-baseline gap-1 mb-3">
-                  <span className="text-5xl md:text-7xl font-black tracking-tighter leading-none">
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className="text-4xl md:text-5xl font-black tracking-tight leading-none text-white drop-shadow-md">
                     {s.value}
                   </span>
-                  <span className="text-2xl md:text-4xl font-bold text-gsg-accent leading-none">
+                  <span className="text-xl md:text-2xl font-bold text-gsg-accent leading-none drop-shadow-md">
                     {s.unit}
                   </span>
                 </div>
-                <p className="text-gray-400 text-sm md:text-base leading-relaxed max-w-[180px]">
+                <p className="text-gray-200 text-xs md:text-sm leading-relaxed max-w-[160px] font-medium drop-shadow">
                   {s.label}
                 </p>
               </div>
