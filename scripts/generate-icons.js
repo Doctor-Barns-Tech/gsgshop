@@ -18,6 +18,7 @@ const pngToIco = require('png-to-ico').default;
 const SRC = path.join(__dirname, '..', 'public', 'fgfg.png');
 const PUB = path.join(__dirname, '..', 'public');
 const ICONS = path.join(PUB, 'icons');
+const SHOPPER_APP = path.join(__dirname, '..', 'app', 'shopper');
 
 if (!fs.existsSync(SRC)) {
     console.error('Source not found:', SRC);
@@ -117,6 +118,16 @@ async function run() {
     fs.writeFileSync(path.join(PUB, 'favicon.ico'), icoBuf);
     fs.rmSync(tmpDir, { recursive: true, force: true });
     console.log('  ', 'public/favicon.ico', `(${icoBuf.length} bytes)`);
+
+    console.log('\nGenerating shopper subdomain icons (app/shopper/{icon,apple-icon}.png)...');
+    if (fs.existsSync(SHOPPER_APP)) {
+        const shopperIcon = await transparentIcon(32, 0.95);
+        await writeIcon(path.join(SHOPPER_APP, 'icon.png'), shopperIcon);
+        const shopperApple = await squareIcon(180, 0.85);
+        await writeIcon(path.join(SHOPPER_APP, 'apple-icon.png'), shopperApple);
+    } else {
+        console.warn('   (skipped: app/shopper not found)');
+    }
 
     console.log('\nGenerating og-image fallback (1200x630, white background)...');
     const og = await sharp({
