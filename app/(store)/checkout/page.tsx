@@ -42,8 +42,32 @@ export default function CheckoutPage() {
 
   const [deliveryMethod, setDeliveryMethod] = useState('pickup');
   const [jointExpressNeighbor, setJointExpressNeighbor] = useState({ name: '', phone: '' });
-  const [paymentMethod, setPaymentMethod] = useState('moolre');
+  // 'moolre' = Mobile Money via Moolre. 'paystack' = Card payments via Paystack.
+  const [paymentMethod, setPaymentMethod] = useState<'moolre' | 'paystack'>('moolre');
   const [errors, setErrors] = useState<any>({});
+
+  const paymentOptions: Array<{
+    value: 'moolre' | 'paystack';
+    label: string;
+    desc: string;
+    icon: string;
+    badges: string[];
+  }> = [
+    {
+      value: 'moolre',
+      label: 'Mobile Money',
+      desc: 'Pay with MTN MoMo, AirtelTigo Money, or Vodafone Cash.',
+      icon: 'ri-smartphone-line',
+      badges: ['MTN', 'AirtelTigo', 'Vodafone'],
+    },
+    {
+      value: 'paystack',
+      label: 'Card Payments',
+      desc: 'Pay securely with your debit or credit card via Paystack.',
+      icon: 'ri-bank-card-line',
+      badges: ['Visa', 'Mastercard', 'Verve'],
+    },
+  ];
 
   const deliveryOptionsList = [
     { value: 'personal-shopper', label: 'Add To My Personal Shopper', desc: 'Send your list to your personal shopper.', href: '/shopper/shopping-list' },
@@ -231,16 +255,19 @@ export default function CheckoutPage() {
       });
 
       // 4. Handle Payment
-      if (paymentMethod === 'moolre') {
+      if (paymentMethod === 'moolre' || paymentMethod === 'paystack') {
         try {
-          const paymentRes = await fetch('/api/payment/moolre', {
+          const initEndpoint =
+            paymentMethod === 'paystack' ? '/api/payment/paystack' : '/api/payment/moolre';
+
+          const paymentRes = await fetch(initEndpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               orderId: orderNumber,
               amount: total,
-              customerEmail: shippingData.email
-            })
+              customerEmail: shippingData.email,
+            }),
           });
 
           const paymentResult = await paymentRes.json();
@@ -252,7 +279,6 @@ export default function CheckoutPage() {
           clearCart();
           window.location.href = paymentResult.url;
           return;
-
         } catch (paymentErr: any) {
           console.error('Payment Error:', paymentErr);
           alert('Failed to initialize payment: ' + paymentErr.message);
@@ -572,6 +598,68 @@ export default function CheckoutPage() {
                       <a href={shopperUrl('/shopping-list')} className="text-blue-700 font-bold hover:underline">Go to My Personal Shopper</a> to add items to your list.
                     </p>
                   )}
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                  <h2 className="text-xl font-bold text-gsg-black mb-2 flex items-center gap-2">
+                    <i className="ri-secure-payment-line text-gsg-purple"></i>
+                    Payment Method
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-6">
+                    Choose how you'd like to pay. You'll be redirected to a secure page to complete payment.
+                  </p>
+                  <div className="space-y-3">
+                    {paymentOptions.map((opt) => {
+                      const selected = paymentMethod === opt.value;
+                      return (
+                        <label
+                          key={opt.value}
+                          className={`flex items-start justify-between gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                            selected
+                              ? 'border-gsg-purple bg-purple-50'
+                              : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-start space-x-4 flex-1">
+                            <div
+                              className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                selected ? 'border-gsg-purple' : 'border-gray-300'
+                              }`}
+                            >
+                              {selected && <div className="w-2.5 h-2.5 rounded-full bg-gsg-purple"></div>}
+                            </div>
+                            <input
+                              type="radio"
+                              name="payment-method"
+                              value={opt.value}
+                              checked={selected}
+                              onChange={() => setPaymentMethod(opt.value)}
+                              className="hidden"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <i className={`${opt.icon} text-lg ${selected ? 'text-gsg-purple' : 'text-gray-500'}`}></i>
+                                <p className={`font-bold ${selected ? 'text-gsg-purple' : 'text-gsg-black'}`}>
+                                  {opt.label}
+                                </p>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1 leading-relaxed">{opt.desc}</p>
+                              <div className="flex flex-wrap gap-1.5 mt-2">
+                                {opt.badges.map((b) => (
+                                  <span
+                                    key={b}
+                                    className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white text-gray-600 border border-gray-200"
+                                  >
+                                    {b}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
 
                   <div className="flex flex-col-reverse md:flex-row gap-4 mt-8">
                     <button
@@ -593,7 +681,11 @@ export default function CheckoutPage() {
                         </>
                       ) : (
                         <>
-                          <span>Pay with Mobile Money</span>
+                          <span>
+                            {paymentMethod === 'paystack'
+                              ? 'Pay with Card'
+                              : 'Pay with Mobile Money'}
+                          </span>
                           <i className="ri-secure-payment-line"></i>
                         </>
                       )}

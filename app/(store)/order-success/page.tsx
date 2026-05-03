@@ -9,10 +9,14 @@ function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
   const paymentSuccess = searchParams.get('payment_success');
-  // Moolre echoes the externalref it stored on its side back to us as
-  // ?reference=ORD-...-R<timestamp>. We forward it to /verify so the lookup
-  // hits the exact transaction.
-  const moolreReference = searchParams.get('reference');
+  // Each gateway redirects with the reference under a slightly different
+  // query parameter — Moolre uses ?reference=, Paystack uses ?reference= or
+  // ?trxref=. We capture all of them and forward whichever we have.
+  const gatewayReference =
+    searchParams.get('reference') || searchParams.get('trxref');
+  // ?provider=paystack|moolre — set by the init route's callback_url so we
+  // can pick the right verify endpoint without DB lookups.
+  const providerHint = (searchParams.get('provider') || '').toLowerCase();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(true);
@@ -50,12 +54,12 @@ function OrderSuccessContent() {
     fetchOrder();
   }, [orderNumber]);
 
-  const verifyPayment = async (orderNum: string, _initialOrder: any) => {
+  const verifyPayment = async (orderNum: string, initialOrder: any) => {
     setVerifying(true);
 
-    // Give the Moolre webhook a head start — most of the time it fires first
+    // Give the gateway webhook a head start — most of the time it fires first
     // and we can short-circuit by just re-reading the order.
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const { data: refreshed } = await supabase
       .from('orders')
@@ -69,19 +73,35 @@ function OrderSuccessContent() {
       return;
     }
 
-    // Webhook didn't make it; ask our backend to confirm with Moolre directly.
+    // Webhook didn't make it; ask our backend to confirm with the gateway directly.
+    // Pick the verify endpoint by:
+    //   1. ?provider= query param (most reliable — set by init's callback_url)
+    //   2. order.metadata.payment_method (set when init succeeds)
+    //   3. order.payment_method column (set when the order was created)
+    //   4. fall back to Moolre to keep older flows working
+    const provider =
+      providerHint ||
+      (refreshed?.metadata?.payment_method as string | undefined) ||
+      (initialOrder?.metadata?.payment_method as string | undefined) ||
+      (refreshed?.payment_method as string | undefined) ||
+      (initialOrder?.payment_method as string | undefined) ||
+      'moolre';
+
+    const verifyEndpoint =
+      provider === 'paystack' ? '/api/payment/paystack/verify' : '/api/payment/moolre/verify';
+
     try {
-      const res = await fetch('/api/payment/moolre/verify', {
+      const res = await fetch(verifyEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderNumber: orderNum,
-          reference: moolreReference || undefined,
-        })
+          reference: gatewayReference || undefined,
+        }),
       });
 
       const result = await res.json();
-      console.log('Payment verification result:', result);
+      console.log('Payment verification result:', { provider, result });
 
       if (result.success && result.payment_status === 'paid') {
         const { data: updated } = await supabase

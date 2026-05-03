@@ -53,6 +53,14 @@ export default function PaymentPage() {
     }
   }, [orderId, router]);
 
+  // Honor whichever gateway the order originally chose. metadata wins over the
+  // top-level column because the init route is what definitively pins it; we
+  // fall back to Moolre to keep older orders working.
+  const orderProvider: 'paystack' | 'moolre' =
+    order?.metadata?.payment_method === 'paystack' || order?.payment_method === 'paystack'
+      ? 'paystack'
+      : 'moolre';
+
   const handlePayNow = async () => {
     if (!order) return;
 
@@ -60,14 +68,17 @@ export default function PaymentPage() {
     setError(null);
 
     try {
-      const paymentRes = await fetch('/api/payment/moolre', {
+      const initEndpoint =
+        orderProvider === 'paystack' ? '/api/payment/paystack' : '/api/payment/moolre';
+
+      const paymentRes = await fetch(initEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId: order.order_number,
           amount: order.total,
-          customerEmail: order.email
-        })
+          customerEmail: order.email,
+        }),
       });
 
       const paymentResult = await paymentRes.json();
@@ -76,9 +87,7 @@ export default function PaymentPage() {
         throw new Error(paymentResult.message || 'Payment initialization failed');
       }
 
-      // Redirect to Moolre payment page
       window.location.href = paymentResult.url;
-
     } catch (err: any) {
       console.error('Payment error:', err);
       setError(err.message || 'Failed to initialize payment. Please try again.');
@@ -215,7 +224,8 @@ export default function PaymentPage() {
           ) : (
             <>
               <i className="ri-secure-payment-line mr-2"></i>
-              Pay GH₵ {order?.total?.toFixed(2)} with Mobile Money
+              Pay GH₵ {order?.total?.toFixed(2)}
+              {orderProvider === 'paystack' ? ' with Card' : ' with Mobile Money'}
             </>
           )}
         </button>
@@ -224,7 +234,7 @@ export default function PaymentPage() {
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500 flex items-center justify-center">
             <i className="ri-lock-line mr-1"></i>
-            Secure payment powered by Moolre
+            Secure payment powered by {orderProvider === 'paystack' ? 'Paystack' : 'Moolre'}
           </p>
         </div>
 
