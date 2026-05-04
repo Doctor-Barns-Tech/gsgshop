@@ -90,13 +90,28 @@ export default function CheckoutPage() {
     }
     checkUser();
 
+    // Keep auth state in sync if the session changes (token refresh failure,
+    // logout in another tab, etc). Without this, React holds a stale `user`
+    // while the supabase JWT is gone, and the `orders` INSERT policy
+    // `user_id = auth.uid()` rejects the row.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      if (!nextUser) {
+        setCheckoutType('guest');
+      }
+    });
+
     // Small delay to ensure cart load
     const timer = setTimeout(() => {
       if (cart.length === 0 && !isLoading) {
         // router.push('/cart'); // Optional: redirect if empty
       }
     }, 500);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, [cart, router, isLoading]);
 
   // Scroll to top when step changes
@@ -157,12 +172,31 @@ export default function CheckoutPage() {
       const trackingId = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
       const trackingNumber = `SLI-${trackingId}`;
 
+      // Re-validate the session against the Supabase server right before the
+      // INSERT. The orders RLS policy requires `user_id = auth.uid()` when
+      // user_id is non-null, so we must only attach a user_id that the JWT
+      // currently going out actually proves. A stale React `user` (token
+      // refresh failure, logout in another tab) would otherwise trip the
+      // policy and the insert would fail with "new row violates row-level
+      // security policy for table orders".
+      let authoritativeUserId: string | null = null;
+      try {
+        const { data: { user: liveUser } } = await supabase.auth.getUser();
+        authoritativeUserId = liveUser?.id ?? null;
+        if (!liveUser && user) {
+          setUser(null);
+          setCheckoutType('guest');
+        }
+      } catch {
+        authoritativeUserId = null;
+      }
+
       // 1. Create Order
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
           order_number: orderNumber,
-          user_id: user?.id || null,
+          user_id: authoritativeUserId,
           email: shippingData.email,
           phone: shippingData.phone,
           status: 'pending',
@@ -178,7 +212,7 @@ export default function CheckoutPage() {
           shipping_address: shippingData,
           billing_address: shippingData,
           metadata: {
-            guest_checkout: !user,
+            guest_checkout: !authoritativeUserId,
             first_name: shippingData.firstName,
             last_name: shippingData.lastName,
             tracking_number: trackingNumber,
@@ -250,7 +284,7 @@ export default function CheckoutPage() {
         p_full_name: fullName,
         p_first_name: shippingData.firstName,
         p_last_name: shippingData.lastName,
-        p_user_id: user?.id || null,
+        p_user_id: authoritativeUserId,
         p_address: shippingData
       });
 
