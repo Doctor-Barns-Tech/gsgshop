@@ -77,23 +77,20 @@ export default function CheckoutPage() {
     { value: 'pickup', label: 'Pickup (Within 72 Hrs.)', desc: 'Within 72hrs (excluding Sunday). Pickup location shown at confirmation.', href: null },
   ];
 
-  // Check auth and cart
+  // Check auth — runs once. Keeping cart/router/isLoading out of the deps so
+  // the auth listener isn't torn down and resubscribed mid-checkout (which
+  // can cancel in-flight supabase requests with AbortError).
   useEffect(() => {
     async function checkUser() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
-        setCheckoutType('account'); // Auto-select account checkout if logged in
-        // Pre-fill email if available
+        setCheckoutType('account');
         setShippingData(prev => ({ ...prev, email: session.user.email || '' }));
       }
     }
     checkUser();
 
-    // Keep auth state in sync if the session changes (token refresh failure,
-    // logout in another tab, etc). Without this, React holds a stale `user`
-    // while the supabase JWT is gone, and the `orders` INSERT policy
-    // `user_id = auth.uid()` rejects the row.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const nextUser = session?.user ?? null;
       setUser(nextUser);
@@ -102,17 +99,10 @@ export default function CheckoutPage() {
       }
     });
 
-    // Small delay to ensure cart load
-    const timer = setTimeout(() => {
-      if (cart.length === 0 && !isLoading) {
-        // router.push('/cart'); // Optional: redirect if empty
-      }
-    }, 500);
     return () => {
-      clearTimeout(timer);
       subscription.unsubscribe();
     };
-  }, [cart, router, isLoading]);
+  }, []);
 
   // Scroll to top when step changes
   useEffect(() => {
@@ -168,127 +158,53 @@ export default function CheckoutPage() {
     }
 
     try {
-      const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      const trackingId = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-      const trackingNumber = `SLI-${trackingId}`;
+      // 1. Create the order via the server-side route. This is required —
+      // direct supabase-js inserts can't get past the RLS combination
+      // (orders.RETURNING enforces SELECT policy + order_items WITH CHECK
+      // joins through orders), and we don't want to trust client-supplied
+      // prices for an endpoint that drives real card payments.
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
 
-      // Re-validate the session against the Supabase server right before the
-      // INSERT. The orders RLS policy requires `user_id = auth.uid()` when
-      // user_id is non-null, so we must only attach a user_id that the JWT
-      // currently going out actually proves. A stale React `user` (token
-      // refresh failure, logout in another tab) would otherwise trip the
-      // policy and the insert would fail with "new row violates row-level
-      // security policy for table orders".
-      let authoritativeUserId: string | null = null;
-      try {
-        const { data: { user: liveUser } } = await supabase.auth.getUser();
-        authoritativeUserId = liveUser?.id ?? null;
-        if (!liveUser && user) {
-          setUser(null);
-          setCheckoutType('guest');
-        }
-      } catch {
-        authoritativeUserId = null;
-      }
-
-      // 1. Create Order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          order_number: orderNumber,
-          user_id: authoritativeUserId,
-          email: shippingData.email,
-          phone: shippingData.phone,
-          status: 'pending',
-          payment_status: 'pending',
-          currency: 'GHS',
-          subtotal: subtotal,
-          tax_total: tax,
-          shipping_total: shippingCost,
-          discount_total: 0,
-          total: total,
-          shipping_method: deliveryMethod,
-          payment_method: paymentMethod,
-          shipping_address: shippingData,
-          billing_address: shippingData,
-          metadata: {
-            guest_checkout: !authoritativeUserId,
-            first_name: shippingData.firstName,
-            last_name: shippingData.lastName,
-            tracking_number: trackingNumber,
-            ...(deliveryMethod === 'joint-express' && (jointExpressNeighbor.name || jointExpressNeighbor.phone)
-              ? { joint_express_neighbor: jointExpressNeighbor }
-              : {})
-          }
-        }])
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // 2. Create Order Items
-      const isValidUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-      const orderItems = [];
-      const productIds = cart.map(item => item.id).filter(id => isValidUUID(id));
-      const { data: productsData } = productIds.length > 0
-        ? await supabase.from('products').select('id, metadata').in('id', productIds)
-        : { data: [] };
-      const productMetaMap = new Map((productsData || []).map((p: any) => [p.id, p.metadata]));
-      
-      for (const item of cart) {
-        let productId = item.id;
-        if (!isValidUUID(productId)) {
-          const { data: product } = await supabase
-            .from('products')
-            .select('id, metadata')
-            .or(`slug.eq.${productId},id.eq.${productId}`)
-            .single();
-          
-          if (product) {
-            productId = product.id;
-            productMetaMap.set(product.id, product.metadata);
-          } else {
-            throw new Error(`Product not found: ${item.name}. Please remove it from your cart and try again.`);
-          }
-        }
-        
-        const prodMeta = productMetaMap.get(productId);
-        
-        orderItems.push({
-          order_id: order.id,
-          product_id: productId,
-          product_name: item.name,
-          variant_name: item.variant,
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity,
-          metadata: {
-            image: item.image,
-            slug: item.slug,
-            preorder_shipping: prodMeta?.preorder_shipping || null
-          }
-        });
-      }
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      // 3. Upsert Customer Record
-      const fullName = `${shippingData.firstName} ${shippingData.lastName}`.trim();
-      await supabase.rpc('upsert_customer_from_order', {
-        p_email: shippingData.email,
-        p_phone: shippingData.phone,
-        p_full_name: fullName,
-        p_first_name: shippingData.firstName,
-        p_last_name: shippingData.lastName,
-        p_user_id: authoritativeUserId,
-        p_address: shippingData
+      const checkoutRes = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          items: cart.map((it) => ({
+            id: it.id,
+            quantity: it.quantity,
+            variant: it.variant,
+          })),
+          shipping: {
+            firstName: shippingData.firstName,
+            lastName: shippingData.lastName,
+            email: shippingData.email,
+            phone: shippingData.phone,
+            address: shippingData.address,
+            city: shippingData.city,
+            region: shippingData.region,
+          },
+          deliveryMethod,
+          paymentMethod,
+          jointExpressNeighbor:
+            deliveryMethod === 'joint-express' && (jointExpressNeighbor.name || jointExpressNeighbor.phone)
+              ? jointExpressNeighbor
+              : null,
+        }),
       });
 
-      // 4. Handle Payment
+      const checkoutResult = await checkoutRes.json();
+      if (!checkoutRes.ok || !checkoutResult.success) {
+        throw new Error(checkoutResult.message || 'Failed to create order');
+      }
+
+      const orderNumber: string = checkoutResult.orderNumber;
+      const orderTotal: number = checkoutResult.total;
+
+      // 2. Initiate payment.
       if (paymentMethod === 'moolre' || paymentMethod === 'paystack') {
         try {
           const initEndpoint =
@@ -299,7 +215,7 @@ export default function CheckoutPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               orderId: orderNumber,
-              amount: total,
+              amount: orderTotal,
               customerEmail: shippingData.email,
             }),
           });
@@ -321,14 +237,14 @@ export default function CheckoutPage() {
         }
       }
 
-      // 5. Send Notifications
+      // 3. No payment provider — fire notifications and head to success page.
       fetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'order_created',
-          payload: order
-        })
+          payload: { order_number: orderNumber, total: orderTotal, email: shippingData.email },
+        }),
       }).catch(err => console.error('Notification trigger error:', err));
 
       clearCart();
