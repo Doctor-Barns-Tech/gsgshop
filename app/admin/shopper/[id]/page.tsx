@@ -10,6 +10,9 @@ export default function AdminShopperRequestDetail({ params }: { params: Promise<
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [id, setId] = useState<string | null>(null);
+  const [deliveryFeeInput, setDeliveryFeeInput] = useState<string>('');
+  const [finalizing, setFinalizing] = useState(false);
+  const [finalizeMsg, setFinalizeMsg] = useState<string | null>(null);
 
   useEffect(() => {
     params.then(p => setId(p.id));
@@ -18,6 +21,12 @@ export default function AdminShopperRequestDetail({ params }: { params: Promise<
   useEffect(() => {
     if (id) fetchRequest(id);
   }, [id]);
+
+  useEffect(() => {
+    if (request) {
+      setDeliveryFeeInput(String(request.delivery_fee ?? 0));
+    }
+  }, [request?.id, request?.delivery_fee]);
 
   const fetchRequest = async (requestId: string) => {
     try {
@@ -62,6 +71,48 @@ export default function AdminShopperRequestDetail({ params }: { params: Promise<
       alert('Failed to update status');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const callFinalize = async (sendPaymentLink: boolean) => {
+    if (!request) return;
+    setFinalizing(true);
+    setFinalizeMsg(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        setFinalizeMsg('You appear to be signed out — please log in again.');
+        return;
+      }
+
+      const deliveryFee = parseFloat(deliveryFeeInput);
+      const res = await fetch(`/api/shopper/requests/${request.id}/finalize`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          deliveryFee: Number.isFinite(deliveryFee) ? deliveryFee : undefined,
+          setStatus: true,
+          sendPaymentLink,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to finalise request');
+      }
+      setFinalizeMsg(
+        sendPaymentLink
+          ? `Total set at GH₵${Number(data.request.total_final).toFixed(2)} and payment link sent.`
+          : `Total set at GH₵${Number(data.request.total_final).toFixed(2)}.`,
+      );
+      if (id) fetchRequest(id);
+    } catch (err: any) {
+      setFinalizeMsg(err.message || 'Failed to finalise request');
+    } finally {
+      setFinalizing(false);
     }
   };
 
@@ -208,11 +259,80 @@ export default function AdminShopperRequestDetail({ params }: { params: Promise<
                 <span>Est. Total</span>
                 <span className="text-purple-700">GH₵{request.total_est}</span>
               </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-500 mb-2">To update final totals, edit the market prices on the items. (Auto-calc coming soon)</p>
+              {request.total_final !== null && request.total_final !== undefined && (
+                <div className="flex justify-between border-t border-gray-100 pt-2 font-bold text-base text-green-700">
+                  <span>Final Total</span>
+                  <span>GH₵{Number(request.total_final).toFixed(2)}</span>
+                </div>
+              )}
             </div>
           </div>
+
+          {request.payment_status !== 'paid' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Payment</h2>
+              <p className="text-xs text-gray-500 mb-4">
+                Once you've entered the actual market prices on each item, set the delivery fee
+                (if any) and send the customer a payment link. The total is recomputed from
+                items + 5% commission + delivery fee.
+              </p>
+
+              <label className="text-xs text-gray-500 block mb-1">Delivery Fee (GHS)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={deliveryFeeInput}
+                onChange={(e) => setDeliveryFeeInput(e.target.value)}
+                disabled={finalizing}
+                className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-purple-500 text-sm mb-4"
+                placeholder="0.00"
+              />
+
+              {finalizeMsg && (
+                <div className={`text-xs p-2 rounded-lg mb-3 ${finalizeMsg.startsWith('Total set') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {finalizeMsg}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => callFinalize(false)}
+                  disabled={finalizing}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {finalizing ? 'Saving…' : 'Recompute & save total'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => callFinalize(true)}
+                  disabled={finalizing}
+                  className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-bold text-white disabled:opacity-50"
+                >
+                  {finalizing ? 'Sending…' : 'Save total & send payment link'}
+                </button>
+                {request.request_number && (
+                  <a
+                    href={`/shopper/pay/${request.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-purple-700 hover:underline text-center mt-1"
+                  >
+                    Open customer pay page ↗
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {request.payment_status === 'paid' && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-sm text-green-800">
+              <i className="ri-checkbox-circle-fill mr-1" /> Paid in full — total
+              GH₵{Number(request.total_final ?? request.total_est ?? 0).toFixed(2)}
+              {request.payment_provider && ` via ${request.payment_provider}`}.
+            </div>
+          )}
         </div>
       </div>
     </div>

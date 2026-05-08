@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
-import { sendOrderConfirmation } from '@/lib/notifications';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { loadPaymentTarget, refKind } from '@/lib/payment-target';
+import { finalizePayment } from '@/lib/payment-finalize';
 
 /**
  * Paystack — verify a transaction after the customer is redirected back from
- * the hosted card page. Called from /order-success.
+ * the hosted card page. Called from /order-success and /shopper/payment-complete.
  *
  * SECURITY:
  *   - The redirect itself is never proof of payment. We always re-verify with
  *     the Paystack API using PAYSTACK_SECRET_KEY.
  *   - Amount comparison: Paystack returns `data.amount` in pesewas — we
- *     convert order.total (cedis) to pesewas before comparing.
+ *     convert target.amount (cedis) to pesewas before comparing.
  *   - Currency must be GHS.
  *
  * Verify endpoint:
@@ -37,36 +37,31 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Missing or invalid orderNumber' }, { status: 400 });
         }
 
-        if (!/^ORD-\d+-\d+$/.test(orderNumber)) {
+        const kind = refKind(orderNumber);
+        if (!kind) {
             return NextResponse.json({ success: false, message: 'Invalid order number format' }, { status: 400 });
         }
 
-        console.log('[Paystack/Verify] Checking payment for:', orderNumber, '| ref hint:', reference);
+        console.log('[Paystack/Verify] Checking', kind, 'payment for:', orderNumber, '| ref hint:', reference);
 
-        const { data: order, error: fetchError } = await supabaseAdmin
-            .from('orders')
-            .select('id, order_number, payment_status, status, total, email, phone, shipping_address, metadata')
-            .eq('order_number', orderNumber)
-            .single();
-
-        if (fetchError || !order) {
-            console.error('[Paystack/Verify] Order not found:', orderNumber);
+        const target = await loadPaymentTarget(orderNumber);
+        if (!target) {
+            console.error('[Paystack/Verify] Target not found:', orderNumber);
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
-        if (order.payment_status === 'paid') {
-            console.log('[Paystack/Verify] Order already paid:', orderNumber);
+        if (target.payment_status === 'paid') {
+            console.log('[Paystack/Verify] Already paid:', orderNumber);
             return NextResponse.json({
                 success: true,
-                status: order.status,
-                payment_status: order.payment_status,
+                payment_status: 'paid',
                 message: 'Order already paid',
             });
         }
 
-        // Reject orders that were initiated against another provider so we don't
+        // Reject targets initiated against another provider so we don't
         // accidentally credit a Moolre order off a stale Paystack reference.
-        if (order.metadata?.payment_method && order.metadata.payment_method !== 'paystack') {
+        if (target.payment_method && target.payment_method !== 'paystack') {
             return NextResponse.json(
                 { success: false, message: 'This order does not use Paystack payment' },
                 { status: 400 }
@@ -79,8 +74,7 @@ export async function POST(req: Request) {
             return NextResponse.json(
                 {
                     success: false,
-                    status: order.status,
-                    payment_status: order.payment_status,
+                    payment_status: target.payment_status,
                     message: 'Payment verification unavailable',
                 },
                 { status: 503 }
@@ -90,10 +84,11 @@ export async function POST(req: Request) {
         // Try multiple references in priority order:
         //  1. Whatever the redirect URL gave us (Paystack echoes ?reference=)
         //  2. The unique ref we persisted at init time
-        //  3. The bare order number, in case init never wrote metadata
+        //  3. The bare merchant ref, in case init never wrote metadata
         const candidates: string[] = [];
         if (typeof reference === 'string' && reference) candidates.push(reference);
-        if (order.metadata?.last_payment_ref) candidates.push(order.metadata.last_payment_ref);
+        const lastRef = (target.metadata as any)?.last_payment_ref;
+        if (lastRef) candidates.push(lastRef);
         candidates.push(orderNumber);
         const uniqueCandidates = Array.from(new Set(candidates));
 
@@ -134,7 +129,7 @@ export async function POST(req: Request) {
 
                 if (data.amount !== undefined && data.amount !== null) {
                     const paidPesewas = Number(data.amount);
-                    const expectedPesewas = Math.round(Number(order.total) * 100);
+                    const expectedPesewas = Math.round(Number(target.amount) * 100);
                     if (Number.isFinite(paidPesewas) && Math.abs(paidPesewas - expectedPesewas) > 1) {
                         console.error(
                             '[Paystack/Verify] AMOUNT MISMATCH! Expected pesewas:',
@@ -165,64 +160,25 @@ export async function POST(req: Request) {
             );
             return NextResponse.json({
                 success: false,
-                status: order.status,
-                payment_status: order.payment_status,
+                payment_status: target.payment_status,
                 message: 'Payment not yet confirmed by payment provider',
             });
         }
 
-        console.log('[Paystack/Verify] Marking order paid:', orderNumber, '| Paystack tx:', paystackTransactionId);
+        console.log('[Paystack/Verify] Marking paid:', orderNumber, '| Paystack tx:', paystackTransactionId);
 
-        // Reuse the existing mark_order_paid RPC. Its second parameter is named
-        // `moolre_ref` for legacy reasons but it accepts any string and stores
-        // it on metadata.moolre_reference. We additionally set the dedicated
-        // payment_transaction_id column below for accurate per-provider tracking.
-        const { data: orderJson, error: updateError } = await supabaseAdmin.rpc('mark_order_paid', {
-            order_ref: orderNumber,
-            moolre_ref: paystackTransactionId || 'paystack-api-verify',
+        const result = await finalizePayment({
+            target,
+            provider: 'paystack',
+            transactionId: paystackTransactionId,
         });
-
-        if (updateError) {
-            console.error('[Paystack/Verify] RPC Error:', updateError.message);
+        if (!result.ok) {
             return NextResponse.json({ success: false, message: 'Failed to update order' }, { status: 500 });
-        }
-
-        // Tag the dedicated provider columns so admin reporting sees the right gateway.
-        try {
-            await supabaseAdmin
-                .from('orders')
-                .update({
-                    payment_provider: 'paystack',
-                    payment_transaction_id: paystackTransactionId,
-                })
-                .eq('order_number', orderNumber);
-        } catch (tagErr: any) {
-            console.warn('[Paystack/Verify] Failed to tag provider columns:', tagErr?.message);
-        }
-
-        if (orderJson?.email) {
-            try {
-                await supabaseAdmin.rpc('update_customer_stats', {
-                    p_customer_email: orderJson.email,
-                    p_order_total: orderJson.total,
-                });
-            } catch (statsError: any) {
-                console.error('[Paystack/Verify] Customer stats failed:', statsError.message);
-            }
-        }
-
-        if (orderJson) {
-            try {
-                await sendOrderConfirmation(orderJson);
-                console.log('[Paystack/Verify] Notifications sent for:', orderNumber);
-            } catch (notifyError: any) {
-                console.error('[Paystack/Verify] Notification failed:', notifyError.message);
-            }
         }
 
         return NextResponse.json({
             success: true,
-            status: 'processing',
+            status: target.kind === 'order' ? 'processing' : 'PAID',
             payment_status: 'paid',
             message: 'Payment verified and order updated',
         });

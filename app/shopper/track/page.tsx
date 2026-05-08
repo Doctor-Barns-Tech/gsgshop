@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const STATUS_STEPS = [
   'SUBMITTED', 'REVIEWING', 'SOURCING', 'AWAITING_CONFIRMATION', 'PAID', 'SHOPPING', 'OUT_FOR_DELIVERY', 'DELIVERED'
@@ -195,10 +196,32 @@ function TrackContent() {
                   ))}
                 </ul>
                 <div className="border-t border-gray-200 pt-4 flex justify-between font-bold text-lg">
-                  <span>Total Estimate</span>
-                  <span className="text-gsg-purple">GH₵{req.total_est}</span>
+                  <span>{req.total_final ? 'Total Due' : 'Total Estimate'}</span>
+                  <span className="text-gsg-purple">GH₵{(req.total_final ?? req.total_est ?? 0)}</span>
                 </div>
               </div>
+
+              {req.status === 'AWAITING_CONFIRMATION' && req.payment_status !== 'paid' && req.total_final && (
+                <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h4 className="text-lg font-bold text-yellow-900 mb-1">Ready to confirm your order?</h4>
+                    <p className="text-sm text-yellow-800">We've finalised market prices. Pay now and we'll start shopping.</p>
+                  </div>
+                  <Link
+                    href={`/pay/${req.id}`}
+                    className="bg-gsg-black hover:bg-gsg-purple text-white px-6 py-3 rounded-xl font-bold transition-colors whitespace-nowrap text-center inline-flex items-center justify-center gap-2"
+                  >
+                    <i className="ri-secure-payment-line" />
+                    Pay GH₵{Number(req.total_final).toFixed(2)}
+                  </Link>
+                </div>
+              )}
+
+              {req.payment_status === 'paid' && (
+                <div className="mt-6 bg-green-50 border border-green-200 rounded-2xl p-4 text-center text-sm text-green-800">
+                  <i className="ri-checkbox-circle-fill mr-1" /> Payment received — your shopper is on it.
+                </div>
+              )}
             </div>
           );
         })}

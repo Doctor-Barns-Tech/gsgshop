@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
-import { sendOrderConfirmation } from '@/lib/notifications';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { loadPaymentTarget, refKind } from '@/lib/payment-target';
+import { finalizePayment } from '@/lib/payment-finalize';
 
 /**
  * Payment verification endpoint.
- * Called from the order-success page after the user completes payment on Moolre.
+ * Called from /order-success and /shopper/payment-complete after the user
+ * completes payment on Moolre.
  *
  * SECURITY: We ONLY trust Moolre's API response for payment verification.
  * The redirect itself is never proof of payment.
@@ -36,34 +37,29 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Missing or invalid orderNumber' }, { status: 400 });
         }
 
-        if (!/^ORD-\d+-\d+$/.test(orderNumber)) {
+        const kind = refKind(orderNumber);
+        if (!kind) {
             return NextResponse.json({ success: false, message: 'Invalid order number format' }, { status: 400 });
         }
 
-        console.log('[Verify] Checking payment for:', orderNumber, '| ref hint:', reference);
+        console.log('[Verify] Checking', kind, 'payment for:', orderNumber, '| ref hint:', reference);
 
-        const { data: order, error: fetchError } = await supabaseAdmin
-            .from('orders')
-            .select('id, order_number, payment_status, status, total, email, phone, shipping_address, metadata')
-            .eq('order_number', orderNumber)
-            .single();
-
-        if (fetchError || !order) {
-            console.error('[Verify] Order not found:', orderNumber);
+        const target = await loadPaymentTarget(orderNumber);
+        if (!target) {
+            console.error('[Verify] Target not found:', orderNumber);
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
-        if (order.payment_status === 'paid') {
-            console.log('[Verify] Order already paid:', orderNumber);
+        if (target.payment_status === 'paid') {
+            console.log('[Verify] Already paid:', orderNumber);
             return NextResponse.json({
                 success: true,
-                status: order.status,
-                payment_status: order.payment_status,
+                payment_status: 'paid',
                 message: 'Order already paid'
             });
         }
 
-        if (order.metadata?.payment_method && order.metadata.payment_method !== 'moolre') {
+        if (target.payment_method && target.payment_method !== 'moolre') {
             return NextResponse.json({
                 success: false,
                 message: 'This order does not use Moolre payment'
@@ -78,8 +74,7 @@ export async function POST(req: Request) {
             console.error('[Verify] Missing Moolre API credentials');
             return NextResponse.json({
                 success: false,
-                status: order.status,
-                payment_status: order.payment_status,
+                payment_status: target.payment_status,
                 message: 'Payment verification unavailable'
             }, { status: 503 });
         }
@@ -87,10 +82,11 @@ export async function POST(req: Request) {
         // The id we send to Moolre must be the externalref Moolre actually has
         // on file. Init route stores that in metadata.last_payment_ref. The
         // redirect URL also includes it as `reference`. Fall back to bare
-        // order_number as a last resort.
+        // merchant ref as a last resort.
         const candidates: string[] = [];
         if (typeof reference === 'string' && reference) candidates.push(reference);
-        if (order.metadata?.last_payment_ref) candidates.push(order.metadata.last_payment_ref);
+        const lastRef = (target.metadata as any)?.last_payment_ref;
+        if (lastRef) candidates.push(lastRef);
         candidates.push(orderNumber);
         const uniqueCandidates = Array.from(new Set(candidates));
 
@@ -131,7 +127,7 @@ export async function POST(req: Request) {
 
                 if (data.amount !== undefined && data.amount !== null) {
                     const paidAmount = parseFloat(String(data.amount));
-                    const expectedAmount = Number(order.total);
+                    const expectedAmount = Number(target.amount);
                     if (Number.isFinite(paidAmount) && Math.abs(paidAmount - expectedAmount) > 0.01) {
                         console.error('[Verify] AMOUNT MISMATCH! Expected:', expectedAmount, 'Got:', paidAmount, 'for ref', candidate);
                         continue;
@@ -150,50 +146,25 @@ export async function POST(req: Request) {
             console.log('[Verify] Cannot verify payment for:', orderNumber, '| last response:', JSON.stringify(lastResponse).slice(0, 200));
             return NextResponse.json({
                 success: false,
-                status: order.status,
-                payment_status: order.payment_status,
+                payment_status: target.payment_status,
                 message: 'Payment not yet confirmed by payment provider'
             });
         }
 
-        console.log('[Verify] Marking order paid:', orderNumber, '| Moolre tx:', moolreTransactionId);
+        console.log('[Verify] Marking paid:', orderNumber, '| Moolre tx:', moolreTransactionId);
 
-        const { data: orderJson, error: updateError } = await supabaseAdmin
-            .rpc('mark_order_paid', {
-                order_ref: orderNumber,
-                moolre_ref: moolreTransactionId || 'moolre-api-verify'
-            });
-
-        if (updateError) {
-            console.error('[Verify] RPC Error:', updateError.message);
+        const result = await finalizePayment({
+            target,
+            provider: 'moolre',
+            transactionId: moolreTransactionId,
+        });
+        if (!result.ok) {
             return NextResponse.json({ success: false, message: 'Failed to update order' }, { status: 500 });
-        }
-
-        console.log('[Verify] Order marked as paid:', orderNumber);
-
-        if (orderJson?.email) {
-            try {
-                await supabaseAdmin.rpc('update_customer_stats', {
-                    p_customer_email: orderJson.email,
-                    p_order_total: orderJson.total
-                });
-            } catch (statsError: any) {
-                console.error('[Verify] Customer stats failed:', statsError.message);
-            }
-        }
-
-        if (orderJson) {
-            try {
-                await sendOrderConfirmation(orderJson);
-                console.log('[Verify] Notifications sent for:', orderNumber);
-            } catch (notifyError: any) {
-                console.error('[Verify] Notification failed:', notifyError.message);
-            }
         }
 
         return NextResponse.json({
             success: true,
-            status: 'processing',
+            status: target.kind === 'order' ? 'processing' : 'PAID',
             payment_status: 'paid',
             message: 'Payment verified and order updated'
         });

@@ -1,28 +1,20 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { sendOrderConfirmation } from '@/lib/notifications';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { loadPaymentTarget, refKind, stripRetrySuffix } from '@/lib/payment-target';
+import { finalizePayment } from '@/lib/payment-finalize';
 
 /**
  * Paystack webhook.
  *
  * https://paystack.com/docs/payments/webhooks/
  *
- * Paystack sends a JSON body with:
- *   {
- *     event: "charge.success" | "charge.failed" | ...,
- *     data: {
- *       id, reference, amount, currency, status, customer, metadata, ...
- *     }
- *   }
- *
- * It signs the **raw** request body with HMAC-SHA512 using your secret key
- * and sends the hex digest as the `x-paystack-signature` header.
+ * Paystack signs the **raw** request body with HMAC-SHA512 using your secret
+ * key and sends the hex digest as the `x-paystack-signature` header.
  *
  * SECURITY: We MUST verify the signature against the raw bytes before
- * trusting anything in the payload. The signature is the only proof the
- * webhook actually came from Paystack and was not tampered with.
+ * trusting anything in the payload.
  *
  * Configure the webhook URL in your Paystack dashboard:
  *   https://<your-host>/api/payment/paystack/callback
@@ -44,8 +36,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Webhook not configured' }, { status: 500 });
         }
 
-        // Read raw body once for signature verification — must be the exact
-        // bytes Paystack signed.
         const rawBody = await req.text();
         const signature = req.headers.get('x-paystack-signature') || '';
 
@@ -72,62 +62,55 @@ export async function POST(req: Request) {
 
         console.log('[Paystack/Callback] Event:', event, '| Reference:', data?.reference, '| Status:', data?.status);
 
-        // Resolve the order. We sent metadata.order_number at init time;
-        // fall back to stripping the retry suffix off the reference if not.
+        // Resolve the merchant ref. Init writes metadata.order_number with the
+        // bare ORD-/SR- form; the reference itself has a -R<ts> retry suffix.
         const metaOrderNumber: string | undefined =
             data?.metadata?.order_number || data?.metadata?.original_order_number;
         const refOrderNumber: string | undefined = data?.reference
-            ? String(data.reference).replace(/-R\d+$/, '')
+            ? stripRetrySuffix(String(data.reference))
             : undefined;
         const merchantOrderRef = metaOrderNumber || refOrderNumber;
 
         if (!merchantOrderRef) {
             console.error('[Paystack/Callback] Missing order reference. Body:', JSON.stringify(body).slice(0, 500));
-            // Always 200 so Paystack doesn't keep retrying a malformed payload.
             return NextResponse.json({ success: false, message: 'Missing order reference' });
         }
 
-        if (event === 'charge.success' && data?.status === 'success') {
-            const { data: existingOrder, error: fetchError } = await supabaseAdmin
-                .from('orders')
-                .select('id, order_number, payment_status, total, metadata')
-                .eq('order_number', merchantOrderRef)
-                .single();
+        const kind = refKind(merchantOrderRef);
+        if (!kind) {
+            console.error('[Paystack/Callback] Unknown ref prefix:', merchantOrderRef);
+            return NextResponse.json({ success: false, message: 'Unknown reference format' });
+        }
 
-            if (fetchError || !existingOrder) {
-                console.error('[Paystack/Callback] Order not found:', merchantOrderRef);
+        if (event === 'charge.success' && data?.status === 'success') {
+            const target = await loadPaymentTarget(merchantOrderRef);
+            if (!target) {
+                console.error('[Paystack/Callback] Target not found:', merchantOrderRef);
                 return NextResponse.json({ success: false, message: 'Order not found' });
             }
 
-            if (existingOrder.payment_status === 'paid') {
-                console.log('[Paystack/Callback] Order already paid — idempotent ack:', merchantOrderRef);
+            if (target.payment_status === 'paid') {
+                console.log('[Paystack/Callback] Already paid — idempotent ack:', merchantOrderRef);
                 return NextResponse.json({ success: true, message: 'Order already processed' });
             }
 
-            // Reject the webhook if it targets an order that was clearly
-            // initiated against a different provider — defensive against
-            // mis-routed/stale events.
-            if (
-                existingOrder.metadata?.payment_method &&
-                existingOrder.metadata.payment_method !== 'paystack'
-            ) {
+            if (target.payment_method && target.payment_method !== 'paystack') {
                 console.error(
-                    '[Paystack/Callback] Provider mismatch — order is',
-                    existingOrder.metadata.payment_method,
+                    '[Paystack/Callback] Provider mismatch — target is',
+                    target.payment_method,
                     'not paystack:',
                     merchantOrderRef
                 );
                 return NextResponse.json({ success: false, message: 'Provider mismatch' });
             }
 
-            // Currency / amount integrity
             if (data.currency && String(data.currency).toUpperCase() !== 'GHS') {
                 console.error('[Paystack/Callback] CURRENCY MISMATCH:', data.currency, 'for', merchantOrderRef);
                 return NextResponse.json({ success: false, message: 'Currency mismatch' }, { status: 400 });
             }
             if (data.amount !== undefined && data.amount !== null) {
                 const paidPesewas = Number(data.amount);
-                const expectedPesewas = Math.round(Number(existingOrder.total) * 100);
+                const expectedPesewas = Math.round(Number(target.amount) * 100);
                 if (Number.isFinite(paidPesewas) && Math.abs(paidPesewas - expectedPesewas) > 1) {
                     console.error(
                         '[Paystack/Callback] AMOUNT MISMATCH — REJECTING! Expected pesewas:',
@@ -146,44 +129,13 @@ export async function POST(req: Request) {
 
             const paystackTxnId = String(data.id || data.reference || 'paystack-callback');
 
-            const { data: orderJson, error: updateError } = await supabaseAdmin.rpc('mark_order_paid', {
-                order_ref: merchantOrderRef,
-                moolre_ref: paystackTxnId,
+            const result = await finalizePayment({
+                target,
+                provider: 'paystack',
+                transactionId: paystackTxnId,
             });
-
-            if (updateError) {
-                console.error('[Paystack/Callback] RPC Error:', updateError.message);
+            if (!result.ok) {
                 return NextResponse.json({ success: false, message: 'Database update failed' }, { status: 500 });
-            }
-
-            try {
-                await supabaseAdmin
-                    .from('orders')
-                    .update({
-                        payment_provider: 'paystack',
-                        payment_transaction_id: paystackTxnId,
-                    })
-                    .eq('order_number', merchantOrderRef);
-            } catch (tagErr: any) {
-                console.warn('[Paystack/Callback] Failed to tag provider columns:', tagErr?.message);
-            }
-
-            try {
-                if (orderJson?.email) {
-                    await supabaseAdmin.rpc('update_customer_stats', {
-                        p_customer_email: orderJson.email,
-                        p_order_total: orderJson.total,
-                    });
-                }
-            } catch (statsError: any) {
-                console.error('[Paystack/Callback] Customer stats failed:', statsError.message);
-            }
-
-            try {
-                if (orderJson) await sendOrderConfirmation(orderJson);
-                console.log('[Paystack/Callback] Notifications sent for:', merchantOrderRef);
-            } catch (notifyError: any) {
-                console.error('[Paystack/Callback] Notification failed:', notifyError.message);
             }
 
             return NextResponse.json({ success: true, message: 'Payment verified and order updated' });
@@ -192,38 +144,56 @@ export async function POST(req: Request) {
         if (event === 'charge.failed') {
             console.log(`[Paystack/Callback] Payment FAILED for ${merchantOrderRef} | gateway response:`, data?.gateway_response);
             try {
-                const { data: existingOrder } = await supabaseAdmin
-                    .from('orders')
-                    .select('metadata, payment_status')
-                    .eq('order_number', merchantOrderRef)
-                    .single();
-
-                if (existingOrder && existingOrder.payment_status !== 'paid') {
-                    const previousMeta = (existingOrder as any).metadata || {};
-                    await supabaseAdmin
+                if (kind === 'order') {
+                    const { data: existingOrder } = await supabaseAdmin
                         .from('orders')
-                        .update({
-                            payment_status: 'failed',
-                            metadata: {
-                                ...previousMeta,
-                                paystack_reference: data?.reference,
-                                failure_reason: data?.gateway_response || 'Payment failed',
-                            },
-                        })
-                        .eq('order_number', merchantOrderRef);
+                        .select('metadata, payment_status')
+                        .eq('order_number', merchantOrderRef)
+                        .single();
+                    if (existingOrder && existingOrder.payment_status !== 'paid') {
+                        const previousMeta = (existingOrder as any).metadata || {};
+                        await supabaseAdmin
+                            .from('orders')
+                            .update({
+                                payment_status: 'failed',
+                                metadata: {
+                                    ...previousMeta,
+                                    paystack_reference: data?.reference,
+                                    failure_reason: data?.gateway_response || 'Payment failed',
+                                },
+                            })
+                            .eq('order_number', merchantOrderRef);
+                    }
+                } else {
+                    const { data: existingReq } = await supabaseAdmin
+                        .from('shopper_requests')
+                        .select('metadata, payment_status')
+                        .eq('request_number', merchantOrderRef)
+                        .single();
+                    if (existingReq && existingReq.payment_status !== 'paid') {
+                        const previousMeta = (existingReq as any).metadata || {};
+                        await supabaseAdmin
+                            .from('shopper_requests')
+                            .update({
+                                payment_status: 'failed',
+                                metadata: {
+                                    ...previousMeta,
+                                    paystack_reference: data?.reference,
+                                    failure_reason: data?.gateway_response || 'Payment failed',
+                                },
+                            })
+                            .eq('request_number', merchantOrderRef);
+                    }
                 }
             } catch (failErr: any) {
-                console.error('[Paystack/Callback] Failed to mark order failed:', failErr?.message);
+                console.error('[Paystack/Callback] Failed to mark target failed:', failErr?.message);
             }
             return NextResponse.json({ success: false, message: 'Payment not successful' });
         }
 
-        // Any other event (transfer.*, subscription.*, etc.) we just acknowledge.
         return NextResponse.json({ success: true, message: 'Event acknowledged' });
     } catch (error: any) {
         console.error('[Paystack/Callback] Critical Error:', error?.message || error);
-        // 200 here would cause infinite retries on truly broken payloads, but
-        // 500 lets Paystack retry transient failures, which is what we want.
         return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
     }
 }
@@ -235,10 +205,6 @@ export async function GET() {
     });
 }
 
-/**
- * Constant-time hex-string comparison so attackers can't time-attack the
- * signature check.
- */
 function timingSafeEqual(a: string, b: string): boolean {
     if (a.length !== b.length) return false;
     try {

@@ -1,22 +1,19 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { loadPaymentTarget, recordPaymentAttempt } from '@/lib/payment-target';
 
 /**
  * Paystack — initialize a hosted card payment.
  *
  * Request body: { orderId: string; customerEmail?: string }
- *   - orderId may be either a UUID (orders.id) or our order_number ("ORD-...")
+ *   - orderId may be a UUID, an ORD-... order_number, or an SR-...
+ *     shopper_requests.request_number. The route dispatches to the right
+ *     table via lib/payment-target.
  *
  * SECURITY:
  *   - amount is taken from the database, NEVER from the client
  *   - Paystack expects amount in pesewas (subunit of GHS), so we send total*100
  *   - Currency is locked to GHS
- *
- * On success we persist on orders.metadata:
- *   - payment_method: 'paystack'
- *   - last_payment_ref: <unique reference we sent to Paystack>
- *   - last_payment_attempt_at: ISO timestamp
  *
  * Response: { success: true, url, reference }
  */
@@ -51,33 +48,34 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Payment gateway configuration error' }, { status: 500 });
         }
 
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
-        const orderQuery = supabaseAdmin
-            .from('orders')
-            .select('id, order_number, total, email, payment_status, metadata');
-
-        const { data: order, error: orderError } = isUuid
-            ? await orderQuery.eq('id', orderId).maybeSingle()
-            : await orderQuery.eq('order_number', orderId).maybeSingle();
-
-        if (orderError || !order) {
-            console.error('[Paystack] Order not found:', orderId, orderError ?? '');
+        const target = await loadPaymentTarget(orderId);
+        if (!target) {
+            console.error('[Paystack] Target not found:', orderId);
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
-        if (order.payment_status === 'paid') {
+        if (target.payment_status === 'paid') {
             return NextResponse.json({ success: false, message: 'Order is already paid' }, { status: 400 });
         }
 
-        const amountCedis = Number(order.total);
+        const amountCedis = Number(target.amount);
         if (!Number.isFinite(amountCedis) || amountCedis <= 0) {
-            return NextResponse.json({ success: false, message: 'Invalid order amount' }, { status: 400 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    message:
+                        target.kind === 'shopper_request'
+                            ? 'This request is not yet ready for payment'
+                            : 'Invalid order amount',
+                },
+                { status: 400 }
+            );
         }
         // Paystack works in subunits — pesewas for GHS.
         const amountPesewas = Math.round(amountCedis * 100);
 
-        const orderRef = order.order_number || orderId;
-        const customerEmailFinal = (typeof customerEmail === 'string' && customerEmail) || order.email;
+        const orderRef = target.ref;
+        const customerEmailFinal = (typeof customerEmail === 'string' && customerEmail) || target.email;
         if (!customerEmailFinal) {
             return NextResponse.json({ success: false, message: 'Missing customer email' }, { status: 400 });
         }
@@ -90,25 +88,28 @@ export async function POST(req: Request) {
         // uniformly.
         const uniqueRef = `${orderRef}-R${Date.now()}`;
 
+        // Shopper-request payments redirect back into the shopper subdomain so
+        // branding stays consistent for that customer.
+        const successPath =
+            target.kind === 'shopper_request'
+                ? `/shopper/payment-complete?ref=${orderRef}&payment_success=true&provider=paystack`
+                : `/order-success?order=${orderRef}&payment_success=true&provider=paystack`;
+
         const payload = {
             email: customerEmailFinal,
             amount: amountPesewas,
             currency: 'GHS',
             reference: uniqueRef,
-            // After the customer pays (or cancels) Paystack redirects them here.
-            // We add provider=paystack so the success page dispatches to the
-            // right /verify endpoint.
-            callback_url: `${baseUrl}/order-success?order=${orderRef}&payment_success=true&provider=paystack`,
-            // Restrict to card-only since the user surfaces this option as
-            // "Card Payments". Mobile money has its own (Moolre) channel.
+            callback_url: `${baseUrl}${successPath}`,
             channels: ['card'],
             metadata: {
                 order_number: orderRef,
                 original_order_number: orderRef,
+                kind: target.kind,
                 customer_email: customerEmailFinal,
                 custom_fields: [
                     {
-                        display_name: 'Order Number',
+                        display_name: target.kind === 'shopper_request' ? 'Request Number' : 'Order Number',
                         variable_name: 'order_number',
                         value: orderRef,
                     },
@@ -116,7 +117,13 @@ export async function POST(req: Request) {
             },
         };
 
-        console.log('[Paystack] Initiating for order:', orderRef, '| Amount (pesewas):', amountPesewas);
+        console.log(
+            '[Paystack] Initiating for',
+            target.kind,
+            orderRef,
+            '| Amount (pesewas):',
+            amountPesewas
+        );
 
         const response = await fetch('https://api.paystack.co/transaction/initialize', {
             method: 'POST',
@@ -131,23 +138,8 @@ export async function POST(req: Request) {
         console.log('[Paystack] Init status:', response.status, '| API status:', result?.status, '| Has URL:', !!result?.data?.authorization_url);
 
         if (response.ok && result?.status === true && result?.data?.authorization_url) {
-            // Persist on the order so /verify and the webhook can correlate
-            // back to this attempt. Failure here is non-fatal because the
-            // redirect URL also carries the reference as a backup.
             try {
-                const previousMeta = (order as any).metadata || {};
-                await supabaseAdmin
-                    .from('orders')
-                    .update({
-                        metadata: {
-                            ...previousMeta,
-                            payment_method: 'paystack',
-                            last_payment_ref: uniqueRef,
-                            last_payment_attempt_at: new Date().toISOString(),
-                        },
-                        payment_provider: 'paystack',
-                    })
-                    .eq('id', (order as any).id);
+                await recordPaymentAttempt(target, { provider: 'paystack', uniqueRef });
             } catch (metaErr: any) {
                 console.warn('[Paystack] Failed to persist last_payment_ref:', metaErr?.message);
             }

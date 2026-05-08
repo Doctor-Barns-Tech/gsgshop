@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { loadPaymentTarget, recordPaymentAttempt } from '@/lib/payment-target';
 
 export async function POST(req: Request) {
     try {
-        // Rate limiting
         const clientId = getClientIdentifier(req);
         const rateLimitResult = checkRateLimit(`payment:${clientId}`, RATE_LIMITS.payment);
 
@@ -28,68 +27,71 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Missing or invalid orderId' }, { status: 400 });
         }
 
-        // Ensure environment variables are set
         if (!process.env.MOOLRE_API_USER || !process.env.MOOLRE_API_PUBKEY || !process.env.MOOLRE_ACCOUNT_NUMBER) {
             console.error('Missing Moolre credentials');
             return NextResponse.json({ success: false, message: 'Payment gateway configuration error' }, { status: 500 });
         }
 
-        // SECURITY: Fetch the order from the database and use its total.
+        // SECURITY: Fetch the target from the database and use its total.
         // NEVER trust the amount from the client.
-        // The client may send either a UUID (orders.id) or an order_number like "ORD-...".
-        // We must dispatch by type because PostgREST aborts an `.or()` filter when one
-        // branch references a UUID column with a non-UUID literal.
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
-        const orderQuery = supabaseAdmin
-            .from('orders')
-            .select('id, order_number, total, email, payment_status, metadata');
-
-        const { data: order, error: orderError } = isUuid
-            ? await orderQuery.eq('id', orderId).maybeSingle()
-            : await orderQuery.eq('order_number', orderId).maybeSingle();
-
-        if (orderError || !order) {
-            console.error('[Payment] Order not found:', orderId, orderError ?? '');
+        // The reference may be a UUID, an ORD-... order number, or an SR-...
+        // shopper-request number — lib/payment-target dispatches.
+        const target = await loadPaymentTarget(orderId);
+        if (!target) {
+            console.error('[Payment] Target not found:', orderId);
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
-        // Don't allow payment for already-paid orders
-        if (order.payment_status === 'paid') {
+        if (target.payment_status === 'paid') {
             return NextResponse.json({ success: false, message: 'Order is already paid' }, { status: 400 });
         }
 
-        // Use the database amount, NOT the client-provided amount
-        const amount = Number(order.total);
+        const amount = Number(target.amount);
         if (!amount || amount <= 0) {
-            return NextResponse.json({ success: false, message: 'Invalid order amount' }, { status: 400 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    message:
+                        target.kind === 'shopper_request'
+                            ? 'This request is not yet ready for payment'
+                            : 'Invalid order amount',
+                },
+                { status: 400 }
+            );
         }
 
-        const orderRef = order.order_number || orderId;
+        const orderRef = target.ref;
 
         const requestUrl = new URL(req.url);
         const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin).replace(/\/+$/, '');
 
-        // Generate a unique external reference for Moolre
         const uniqueRef = `${orderRef}-R${Date.now()}`;
 
-        // Moolre Payload
+        // Shopper-request payments redirect back into the shopper subdomain so
+        // branding stays consistent for that customer.
+        const redirectPath =
+            target.kind === 'shopper_request'
+                ? `/shopper/payment-complete?ref=${orderRef}&payment_success=true`
+                : `/order-success?order=${orderRef}&payment_success=true`;
+
         const payload = {
             type: 1,
             amount: amount.toString(),
             email: process.env.MOOLRE_MERCHANT_EMAIL || 'admin@gsgbrands.com.gh',
             externalref: uniqueRef,
             callback: `${baseUrl}/api/payment/moolre/callback`,
-            redirect: `${baseUrl}/order-success?order=${orderRef}&payment_success=true`,
+            redirect: `${baseUrl}${redirectPath}`,
             reusable: "0",
             currency: "GHS",
             accountnumber: process.env.MOOLRE_ACCOUNT_NUMBER,
             metadata: {
-                customer_email: customerEmail || order.email,
-                original_order_number: orderRef
+                customer_email: customerEmail || target.email,
+                original_order_number: orderRef,
+                kind: target.kind,
             }
         };
 
-        console.log('[Payment] Initiating for order:', orderRef, '| Amount from DB:', amount, '| Callback:', payload.callback);
+        console.log('[Payment] Initiating for', target.kind, orderRef, '| Amount from DB:', amount, '| Callback:', payload.callback);
 
         const response = await fetch('https://api.moolre.com/embed/link', {
             method: 'POST',
@@ -105,22 +107,8 @@ export async function POST(req: Request) {
         console.log('[Payment] Response status:', result.status, '| Has URL:', !!result.data?.authorization_url);
 
         if (result.status === 1 && result.data?.authorization_url) {
-            // Persist the unique ref we sent to Moolre so /verify can look the
-            // transaction up later. We don't fail the request if this write
-            // fails — the redirect URL still carries `reference` as a backup.
             try {
-                const previousMeta = (order as any).metadata || {};
-                await supabaseAdmin
-                    .from('orders')
-                    .update({
-                        metadata: {
-                            ...previousMeta,
-                            payment_method: 'moolre',
-                            last_payment_ref: uniqueRef,
-                            last_payment_attempt_at: new Date().toISOString(),
-                        },
-                    })
-                    .eq('id', (order as any).id);
+                await recordPaymentAttempt(target, { provider: 'moolre', uniqueRef });
             } catch (metaErr: any) {
                 console.warn('[Payment] Failed to persist last_payment_ref:', metaErr?.message);
             }

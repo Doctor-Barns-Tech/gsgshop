@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { supabase } from '@/lib/supabase';
 import { escapeHtml } from '@/lib/sanitize';
+import { getShopperBaseUrl } from '@/lib/site-urls';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@gsgbrands.com.gh';
@@ -557,4 +558,105 @@ export async function sendContactMessage(data: { name: string, email: string, su
 ${emailButton('Reply to ' + safeName, `mailto:${safeEmail}?subject=Re: ${encodeURIComponent(subject)}`)}
 `, `New contact from ${safeName}: ${safeSubject}`)
     });
+}
+
+// ============================================================
+// Personal-shopper notifications
+// ============================================================
+// These mirror sendPaymentLink / sendOrderConfirmation but speak in
+// "request" language and live on the shopper subdomain so links and
+// branding stay consistent for that customer.
+
+function shopperPayUrl(req: any): string {
+    const base = getShopperBaseUrl();
+    return `${base}/pay/${req.id}`;
+}
+
+function shopperTrackUrl(req: any): string {
+    const base = getShopperBaseUrl();
+    return `${base}/track?id=${req.id}`;
+}
+
+export async function sendShopperPaymentLink(req: any) {
+    const total = Number(req.total_final ?? req.total_est ?? 0);
+    const name = req.contact_name || 'Customer';
+    const phone = req.contact_phone;
+    const email = req.contact_email;
+    const reqRef = req.request_number || req.id;
+    const payUrl = shopperPayUrl(req);
+
+    console.log(`[Notification] Sending shopper payment link for ${reqRef} | Phone: ${phone ? 'present' : 'missing'} | Email: ${email ? 'present' : 'missing'}`);
+
+    if (email) {
+        await sendEmail({
+            to: email,
+            subject: `Confirm & Pay — Personal Shopper Request ${reqRef}`,
+            html: emailLayout(`
+<div style="text-align:center;margin-bottom:24px;">
+  <div style="width:64px;height:64px;background-color:#fef3c7;border-radius:50%;margin:0 auto 16px;line-height:64px;font-size:28px;">&#128722;</div>
+  <h2 style="margin:0 0 4px;color:#111827;font-size:22px;">Your Shopping List Is Ready</h2>
+  <p style="margin:0;color:#6b7280;font-size:14px;">Hi ${escapeHtml(name)}, we've confirmed market prices on your items.</p>
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:20px 0;">
+  ${emailInfoRow('Request', `#${escapeHtml(String(reqRef))}`)}
+  ${emailInfoRow('Total Due', `<span style="color:${BRAND.color};font-size:18px;font-weight:700;">GH₵${total.toFixed(2)}</span>`)}
+</table>
+
+<p style="color:#374151;font-size:14px;line-height:1.6;margin:16px 0;">Tap below to pay securely with Mobile Money or Card. As soon as we receive your payment, our personal shopper will start picking up your items.</p>
+
+${emailButton('Pay Now — GH₵' + total.toFixed(2), payUrl, '#d97706')}
+
+<p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">Or copy this link: <a href="${payUrl}" style="color:${BRAND.color};">${payUrl}</a></p>
+`, `Confirm & pay GH₵${total.toFixed(2)} for shopper request ${reqRef}`),
+        });
+    }
+
+    if (phone) {
+        await sendSMS({
+            to: phone,
+            message: `Hi ${name}, your GSG Personal Shopper request ${reqRef} is ready. Total GH₵${total.toFixed(2)}. Pay here: ${payUrl}`,
+        });
+    }
+}
+
+export async function sendShopperOrderConfirmation(req: any) {
+    const total = Number(req.total_final ?? req.total_est ?? 0);
+    const name = req.contact_name || 'Customer';
+    const phone = req.contact_phone;
+    const email = req.contact_email;
+    const reqRef = req.request_number || req.id;
+    const trackUrl = shopperTrackUrl(req);
+
+    console.log(`[Notification] Sending shopper payment confirmation for ${reqRef}`);
+
+    if (email) {
+        await sendEmail({
+            to: email,
+            subject: `Payment Received — Personal Shopper Request ${reqRef}`,
+            html: emailLayout(`
+<div style="text-align:center;margin-bottom:24px;">
+  <div style="width:64px;height:64px;background-color:#dcfce7;border-radius:50%;margin:0 auto 16px;line-height:64px;font-size:28px;">&#9989;</div>
+  <h2 style="margin:0 0 4px;color:#111827;font-size:22px;">Payment Received</h2>
+  <p style="margin:0;color:#6b7280;font-size:14px;">Hi ${escapeHtml(name)}, thanks! Your personal shopper is on it.</p>
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:20px 0;">
+  ${emailInfoRow('Request', `#${escapeHtml(String(reqRef))}`)}
+  ${emailInfoRow('Amount Paid', `<span style="color:#16a34a;font-size:18px;font-weight:700;">GH₵${total.toFixed(2)}</span>`)}
+</table>
+
+<p style="color:#374151;font-size:14px;line-height:1.6;margin:16px 0;">We'll keep you posted on shopping progress and delivery. You can also check status any time below.</p>
+
+${emailButton('Track My Request', trackUrl)}
+`, `Payment received for shopper request ${reqRef}`),
+        });
+    }
+
+    if (phone) {
+        await sendSMS({
+            to: phone,
+            message: `Payment received! Your GSG Personal Shopper request ${reqRef} (GH₵${total.toFixed(2)}) is now being processed. Track: ${trackUrl}`,
+        });
+    }
 }
