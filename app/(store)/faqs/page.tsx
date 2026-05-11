@@ -25,7 +25,7 @@ export default function FAQsPage() {
     {
       category: 'orders',
       question: 'Can I modify or cancel my order?',
-      answer: 'You can modify or cancel your order within 1 hour of placing it. Contact our customer service immediately via WhatsApp at +233 20 959 7443 or email info@gsgbrands.com.gh. Once an order is processed, modifications may not be possible.'
+      answer: 'Yes — as long as it hasn\'t been dispatched yet. Contact us via WhatsApp at +233 20 959 7443 or email info@gsgbrands.com.gh and we\'ll make the change at no cost. If your order is already on its way, you\'ll need to cover the delivery cost already incurred (and any return-trip cost) before we can cancel or modify. Perishable items can\'t be cancelled once dispatched.'
     },
     {
       category: 'orders',
@@ -40,12 +40,12 @@ export default function FAQsPage() {
     {
       category: 'shipping',
       question: 'What are your delivery times?',
-      answer: 'Standard delivery takes 2-5 business days within Ghana. Express delivery (next-day) is available for Accra and Kumasi. Orders placed before 2pm are dispatched same day. Remote areas may take 5-7 business days.'
+      answer: 'It depends on the delivery choice you pick at checkout. Sole Express and Joint Express run daily with 2hr, 6hr, 12hr, 24hr or 48hr slots after order confirmation — fresh and perishable items must use one of these. Free Delivery runs on Tuesdays and Fridays only, and your order must be confirmed before noon the preceding day (qualifies for the 5% Free Delivery Discount). Pickup is ready within 72 hours of confirmation (excluding Sundays), and you collect at the location shared in your confirmation. Personal Shopper requests are scheduled separately once we confirm market prices with you.'
     },
     {
       category: 'shipping',
       question: 'How much does shipping cost?',
-      answer: 'Standard shipping costs GHS 20. Express delivery costs GHS 40. Orders over GHS 300 qualify for FREE standard shipping. Store pickup is also available at no charge from our Accra location.'
+      answer: 'It depends on your delivery choice and delivery destination. At checkout you can pick from: Free Delivery (Tue/Fri, requires the 5% Free Delivery Discount on qualifying orders), Sole Express (paid, 2hr–48hr slots, daily), Joint Express (you share the fee with a neighbour, daily), or Pickup at our location (free, within 72 hours excluding Sunday). The exact rate for paid options is calculated from your delivery address — closer destinations pay less than far-out ones — and shown to you before you confirm the order.'
     },
     {
       category: 'shipping',
@@ -55,7 +55,7 @@ export default function FAQsPage() {
     {
       category: 'shipping',
       question: 'What if nobody is home for delivery?',
-      answer: 'Our delivery partner will attempt delivery twice. If unsuccessful, the package will be held at the nearest collection point for 5 days. You\'ll receive SMS and email notifications with collection instructions.'
+      answer: 'We always reach out and confirm collection arrangements with you before your order is dispatched, so this rarely happens. If the agreed handover still falls through on the day, we\'ll reschedule a fresh delivery with you — the rebooked delivery fee is paid by the customer, and applies to non-perishable items only. Perishables (fresh produce, frozen, etc.) cannot be rebooked once dispatched and are non-refundable for missed handover.'
     },
     {
       category: 'returns',
@@ -70,12 +70,12 @@ export default function FAQsPage() {
     {
       category: 'returns',
       question: 'Who pays for return shipping?',
-      answer: 'If you\'re returning due to a defect or our error, we cover return shipping. For change-of-mind returns, customers pay return shipping costs (GHS 15 standard rate). Free shipping on returns for defective items.'
+      answer: 'If you\'re returning due to a defect or our error, we cover return shipping in full. For change-of-mind returns, the customer pays return shipping — the cost depends on the delivery option you choose to send the item back (Sole Express, Joint Express, Free Delivery on Tue/Fri, or pickup at our location).'
     },
     {
       category: 'returns',
       question: 'Can I exchange an item instead of returning it?',
-      answer: 'Yes! If you need a different size or colour, select "Exchange" when initiating your return. We\'ll send the replacement as soon as we receive your original item. Exchange shipping is FREE.'
+      answer: 'Yes — select "Exchange" when initiating your return and we\'ll send the replacement as soon as we receive your original item. Exchange shipping is paid by the customer because the swap is driven by your own change of mind (wrong size, colour, etc.). The exact cost depends on which delivery option you pick for the swap (Sole Express, Joint Express, Free Delivery on Tue/Fri, or pickup). If the item was defective or we shipped you the wrong one, exchange shipping is on us.'
     },
     {
       category: 'payment',

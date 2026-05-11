@@ -146,8 +146,14 @@ function OrderSuccessContent() {
   }
 
   const orderDate = new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-  const estimatedDelivery = new Date(new Date(order.created_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   const pointsEarned = Math.floor(order.total / 10); // Example logic: 1 point per 10 currency units
+
+  // Estimated delivery is anchored on the payment date, not the order date —
+  // the customer's gap is "from when I paid to when it arrives", which is what
+  // the delivery option actually promises (e.g. "within 48hrs of confirmation"
+  // for Sole Express). When the order isn't paid yet we show the promise
+  // relative to "payment confirmation" rather than a misleading date.
+  const deliveryEstimate = computeDeliveryEstimate(order);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
@@ -193,8 +199,13 @@ function OrderSuccessContent() {
                   <p className="text-lg font-bold text-gray-900">{orderDate}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Estimated Delivery</p>
-                  <p className="text-lg font-bold text-blue-700">{estimatedDelivery}</p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    {deliveryEstimate.heading}
+                  </p>
+                  <p className="text-lg font-bold text-blue-700">{deliveryEstimate.dateLabel}</p>
+                  {deliveryEstimate.subLabel && (
+                    <p className="text-xs text-gray-500 mt-1">{deliveryEstimate.subLabel}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -386,4 +397,128 @@ export default function OrderSuccessPage() {
       <OrderSuccessContent />
     </Suspense>
   );
+}
+
+/**
+ * Estimated-delivery helper.
+ *
+ * Anchors on the payment-confirmed timestamp (`metadata.payment_verified_at`),
+ * not the order-creation timestamp — the customer's expectation is "from when
+ * I paid to when it arrives", which is what each delivery option actually
+ * promises ("within 48hrs of confirmation" for Express, "ready within 72hrs"
+ * for Pickup, "next Tue/Fri" for Free Delivery).
+ *
+ * When the order isn't paid yet, we phrase the promise relative to "payment
+ * confirmation" instead of inventing a date.
+ */
+function computeDeliveryEstimate(order: any): {
+  heading: string;
+  dateLabel: string;
+  subLabel?: string;
+} {
+  const method: string = order?.shipping_method || '';
+  const paidIso: string | undefined = order?.metadata?.payment_verified_at;
+  const isPaid = order?.payment_status === 'paid';
+  const anchor = paidIso ? new Date(paidIso) : isPaid ? new Date(order.created_at) : null;
+
+  const fmtDate = (d: Date) =>
+    d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const dayCount = (a: Date, b: Date) => {
+    const ms = b.getTime() - a.getTime();
+    return Math.max(0, Math.round(ms / (24 * 60 * 60 * 1000)));
+  };
+
+  // Express delivery — within 48hrs of confirmation. We show the outer bound.
+  if (method === 'sole-express' || method === 'joint-express') {
+    if (anchor) {
+      const eta = new Date(anchor.getTime() + 48 * 60 * 60 * 1000);
+      const days = dayCount(anchor, eta);
+      return {
+        heading: 'Estimated Delivery',
+        dateLabel: fmtDate(eta),
+        subLabel: `Within 48 hours of payment · ${days} day${days === 1 ? '' : 's'} after payment confirmation`,
+      };
+    }
+    return {
+      heading: 'Estimated Delivery',
+      dateLabel: 'Within 48 hours of payment',
+      subLabel: 'Sole Express / Joint Express · daily',
+    };
+  }
+
+  // Pickup — ready within 72hrs of confirmation, excluding Sunday.
+  if (method === 'pickup') {
+    if (anchor) {
+      const eta = new Date(anchor.getTime() + 72 * 60 * 60 * 1000);
+      if (eta.getDay() === 0) eta.setDate(eta.getDate() + 1); // skip Sunday
+      const days = dayCount(anchor, eta);
+      return {
+        heading: 'Ready for Pickup By',
+        dateLabel: fmtDate(eta),
+        subLabel: `Within 72 hours of payment · ${days} day${days === 1 ? '' : 's'} after payment confirmation`,
+      };
+    }
+    return {
+      heading: 'Ready for Pickup',
+      dateLabel: 'Within 72 hours of payment',
+      subLabel: 'Pickup at our location (excluding Sundays)',
+    };
+  }
+
+  // Free Delivery — Tue/Fri only, must be confirmed before noon prior day.
+  if (method === 'free-delivery') {
+    if (anchor) {
+      const candidate = nextFreeDeliverySlot(anchor);
+      const days = dayCount(anchor, candidate);
+      return {
+        heading: 'Estimated Delivery',
+        dateLabel: fmtDate(candidate),
+        subLabel: `Free Delivery (Tue/Fri) · ${days} day${days === 1 ? '' : 's'} after payment confirmation`,
+      };
+    }
+    return {
+      heading: 'Estimated Delivery',
+      dateLabel: 'Next Tuesday or Friday',
+      subLabel: 'Free Delivery requires confirmation before noon the preceding day',
+    };
+  }
+
+  if (method === 'personal-shopper') {
+    return {
+      heading: 'Delivery',
+      dateLabel: 'Scheduled with your shopper',
+      subLabel: 'Your personal shopper will confirm timing after sourcing your items',
+    };
+  }
+
+  // Unknown / not selected → honest fallback.
+  return {
+    heading: 'Estimated Delivery',
+    dateLabel: 'Confirmed after payment',
+    subLabel: 'Window depends on the delivery option you picked',
+  };
+}
+
+/**
+ * Returns the next Tue/Fri after `anchor` that satisfies the
+ * "confirmed before noon the preceding day" rule.
+ */
+function nextFreeDeliverySlot(anchor: Date): Date {
+  const candidates: Date[] = [];
+  for (let i = 1; i <= 8; i++) {
+    const c = new Date(anchor);
+    c.setDate(c.getDate() + i);
+    c.setHours(12, 0, 0, 0);
+    const d = c.getDay();
+    if (d === 2 || d === 5) candidates.push(c); // Tue or Fri
+  }
+  for (const c of candidates) {
+    const cutoff = new Date(c);
+    cutoff.setDate(cutoff.getDate() - 1);
+    cutoff.setHours(12, 0, 0, 0);
+    if (anchor.getTime() <= cutoff.getTime()) return c;
+  }
+  // Fall back to the last candidate if nothing else qualifies.
+  return candidates[candidates.length - 1] ?? new Date(anchor.getTime() + 7 * 24 * 60 * 60 * 1000);
 }
