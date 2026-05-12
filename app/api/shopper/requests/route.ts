@@ -16,6 +16,14 @@ export async function POST(request: Request) {
     const userId = authResult.authenticated && authResult.user ? authResult.user.id : null;
 
     // 1. Create Request
+    //
+    // Per docs/shopper-implementation-plan.md (section 7): customers pay the
+    // total estimate UPFRONT at submission. We therefore lock in
+    // total_final = totalEst and leave delivery_fee at 0 so the /pay/[id]
+    // page treats the request as immediately payable. The admin can still
+    // recompute the total later via /api/shopper/requests/[id]/finalize if
+    // market prices differ — that endpoint overwrites total_final, which the
+    // customer sees on their next /track or /pay load.
     const { data: requestData, error: requestError } = await supabaseAdmin
       .from('shopper_requests')
       .insert({
@@ -24,6 +32,8 @@ export async function POST(request: Request) {
         subtotal_est: subtotalEst,
         commission: commission,
         total_est: totalEst,
+        total_final: totalEst,
+        delivery_fee: 0,
         notes: notes,
         delivery_address: deliveryAddress,
         preferred_time: preferredTime,
@@ -31,7 +41,7 @@ export async function POST(request: Request) {
         contact_phone: contactPhone,
         contact_email: contactEmail
       })
-      .select('id')
+      .select('id, request_number')
       .single();
 
     if (requestError) throw requestError;
@@ -62,7 +72,11 @@ export async function POST(request: Request) {
         created_by: userId
       });
 
-    return NextResponse.json({ id: requestData.id, success: true });
+    return NextResponse.json({
+      id: requestData.id,
+      request_number: requestData.request_number,
+      success: true,
+    });
 
   } catch (error: any) {
     console.error('Shopper Request Error:', error);

@@ -96,8 +96,11 @@ export default function ShoppingList() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to submit request');
 
-      // Redirect to tracking page
-      router.push(`/shopper/track?id=${data.id}`);
+      // Take the customer straight to the payment page — per the original
+      // implementation plan, the estimate is payable upfront. They can still
+      // reach /track later from the success page or via the confirmation
+      // email if they abandon checkout.
+      router.push(`/shopper/pay/${data.id}`);
 
     } catch (err: any) {
       setError(err.message);
@@ -277,7 +280,7 @@ export default function ShoppingList() {
 
                 <div className="bg-purple-50 p-4 rounded-xl mb-6 text-sm text-purple-800">
                   <i className="ri-information-line mr-2"></i>
-                  This is an estimate. Final prices will be confirmed based on actual market rates. You will be notified if there are significant changes before we proceed.
+                  You'll pay this estimate upfront to lock in your shopper. If actual market prices differ significantly, we'll contact you before delivery to adjust — extra owed becomes a top-up, refunds are issued in 1–3 business days.
                 </div>
 
                 <button 
@@ -285,7 +288,12 @@ export default function ShoppingList() {
                   disabled={loading || items.length === 0}
                   className="w-full bg-gsg-black hover:bg-gsg-purple text-white py-4 rounded-xl font-bold transition-all shadow-lg disabled:opacity-50 flex justify-center items-center gap-2"
                 >
-                  {loading ? <i className="ri-loader-4-line animate-spin text-xl"></i> : 'Submit Request'}
+                  {loading ? <i className="ri-loader-4-line animate-spin text-xl"></i> : (
+                    <>
+                      <i className="ri-secure-payment-line text-lg"></i>
+                      Submit & Pay GH₵{total.toFixed(2)}
+                    </>
+                  )}
                 </button>
               </div>
             </div>
