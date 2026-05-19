@@ -58,15 +58,23 @@ const STATUS_OPTIONS = [
   'CANCELLED',
 ] as const;
 
-const WORKFLOW_STEPS: Array<{ key: string; label: string }> = [
-  { key: 'SUBMITTED', label: 'Submitted' },
-  { key: 'REVIEWING', label: 'Reviewing' },
-  { key: 'SOURCING', label: 'Sourcing' },
-  { key: 'PAID', label: 'Paid' },
-  { key: 'SHOPPING', label: 'Shopping' },
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery' },
-  { key: 'DELIVERED', label: 'Delivered' },
+// Workflow order: customer pays the estimate UPFRONT (right after submission),
+// then admin works the request and may need to cancel + refund along the way.
+const WORKFLOW_STEPS: Array<{ key: string; label: string; hint?: string }> = [
+  { key: 'SUBMITTED',             label: 'Submitted' },
+  { key: 'PAID',                  label: 'Paid',                 hint: 'Customer paid the estimate' },
+  { key: 'REVIEWING',             label: 'Reviewing',            hint: 'Call customer to clarify the list' },
+  { key: 'SOURCING',              label: 'Sourcing',             hint: 'Check market prices' },
+  { key: 'AWAITING_CONFIRMATION', label: 'Awaiting Confirmation', hint: 'Customer approves price changes' },
+  { key: 'SHOPPING',              label: 'Shopping' },
+  { key: 'OUT_FOR_DELIVERY',      label: 'Out for Delivery' },
+  { key: 'DELIVERED',             label: 'Delivered' },
 ];
+
+// Workflow steps that come AT or BEFORE PAID — used to mark the PAID step as
+// completed in the stepper if payment_status='paid' but admin hasn't moved
+// status forward yet.
+const STEPS_BEFORE_PAID = new Set(['SUBMITTED']);
 
 const STATUS_STYLES: Record<string, { pill: string; dot: string; ring: string }> = {
   SUBMITTED:             { pill: 'bg-gray-100 text-gray-700 border-gray-200',           dot: 'bg-gray-400',   ring: 'ring-gray-200' },
@@ -241,9 +249,18 @@ export default function AdminShopperRequestDetail({ params }: { params: Promise<
 
   const allItemsPriced = !!request && request.items.every(it => it.market_price !== null && Number(it.market_price) > 0);
 
+  const isCancelled = request?.status === 'CANCELLED';
+  const isPaid = request?.payment_status === 'paid';
+
+  // The "active" step in the stepper. CANCELLED is rendered separately, so we
+  // treat the request as off the stepper entirely. If the customer has paid but
+  // the admin hasn't moved status past PAID, we visually advance to PAID.
   const activeStepIndex = (() => {
-    if (!request) return -1;
+    if (!request || isCancelled) return -1;
     const i = WORKFLOW_STEPS.findIndex(s => s.key === request.status);
+    if (isPaid && (i === -1 || (request.status && STEPS_BEFORE_PAID.has(request.status)))) {
+      return WORKFLOW_STEPS.findIndex(s => s.key === 'PAID');
+    }
     return i;
   })();
 
@@ -338,68 +355,125 @@ export default function AdminShopperRequestDetail({ params }: { params: Promise<
           </div>
         </div>
 
-        {/* STEPPER */}
-        <div className="mt-8 -mx-6 md:-mx-8 px-6 md:px-8 overflow-x-auto">
-          <div className="min-w-[640px]">
-            <div className="flex items-center">
-              {WORKFLOW_STEPS.map((step, i) => {
-                const isPast = activeStepIndex > i;
-                const isCurrent = activeStepIndex === i;
-                const isFuture = activeStepIndex < i;
-                const stepStyle = STATUS_STYLES[step.key] ?? STATUS_STYLES.SUBMITTED;
-                return (
-                  <div key={step.key} className="flex-1 flex items-center last:flex-initial">
-                    <div className="flex flex-col items-center min-w-0">
-                      <div
-                        className={[
-                          'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all',
-                          isPast ? `${stepStyle.dot} text-white border-transparent` : '',
-                          isCurrent ? `${stepStyle.dot} text-white border-transparent ring-4 ${stepStyle.ring}` : '',
-                          isFuture ? 'bg-white text-gray-300 border-gray-200' : '',
-                        ].join(' ')}
-                      >
-                        {isPast ? <i className="ri-check-line" /> : i + 1}
+        {/* STEPPER (or CANCELLED banner) */}
+        {isCancelled ? (
+          <div className="mt-8 rounded-xl border-2 border-red-200 bg-red-50 p-5 flex flex-col md:flex-row md:items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-red-500 text-white flex items-center justify-center shrink-0">
+              <i className="ri-close-circle-line text-2xl" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-red-900 text-base">Request cancelled</h3>
+              <p className="text-sm text-red-800 mt-0.5">
+                This request ended before delivery.
+                {isPaid
+                  ? ' The customer paid — issue a refund if you have not already.'
+                  : ' No payment was captured.'}
+              </p>
+            </div>
+            {isPaid && (
+              <a
+                href="https://dashboard.paystack.com/#/transactions"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-bold text-red-700 hover:text-red-900 inline-flex items-center gap-1 whitespace-nowrap"
+              >
+                <i className="ri-external-link-line" /> Open gateway dashboard
+              </a>
+            )}
+          </div>
+        ) : (
+          <div className="mt-8 -mx-6 md:-mx-8 px-6 md:px-8 overflow-x-auto">
+            <div className="min-w-[760px]">
+              <div className="flex items-start">
+                {WORKFLOW_STEPS.map((step, i) => {
+                  const isPast = activeStepIndex > i;
+                  const isCurrent = activeStepIndex === i;
+                  const isFuture = activeStepIndex < i;
+                  const stepStyle = STATUS_STYLES[step.key] ?? STATUS_STYLES.SUBMITTED;
+                  return (
+                    <div key={step.key} className="flex-1 flex items-start last:flex-initial">
+                      <div className="flex flex-col items-center min-w-0 px-1">
+                        <div
+                          className={[
+                            'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all',
+                            isPast ? `${stepStyle.dot} text-white border-transparent` : '',
+                            isCurrent ? `${stepStyle.dot} text-white border-transparent ring-4 ${stepStyle.ring}` : '',
+                            isFuture ? 'bg-white text-gray-300 border-gray-200' : '',
+                          ].join(' ')}
+                        >
+                          {isPast ? <i className="ri-check-line" /> : i + 1}
+                        </div>
+                        <span
+                          className={[
+                            'mt-2 text-[11px] font-bold whitespace-nowrap',
+                            isPast || isCurrent ? 'text-gray-900' : 'text-gray-400',
+                          ].join(' ')}
+                        >
+                          {step.label}
+                        </span>
+                        {step.hint && (isCurrent || isPast) && (
+                          <span className="mt-0.5 text-[10px] text-gray-400 max-w-[120px] text-center leading-tight">
+                            {step.hint}
+                          </span>
+                        )}
+                        {/* Side-branch hint under AWAITING_CONFIRMATION */}
+                        {step.key === 'AWAITING_CONFIRMATION' && (
+                          <span className="mt-1 text-[10px] text-red-500 font-bold whitespace-nowrap inline-flex items-center gap-1">
+                            <i className="ri-arrow-right-down-line" /> or Cancel & Refund
+                          </span>
+                        )}
                       </div>
-                      <span
-                        className={[
-                          'mt-2 text-[11px] font-bold whitespace-nowrap',
-                          isPast || isCurrent ? 'text-gray-900' : 'text-gray-400',
-                        ].join(' ')}
-                      >
-                        {step.label}
-                      </span>
+                      {i < WORKFLOW_STEPS.length - 1 && (
+                        <div
+                          className={[
+                            'flex-1 h-0.5 mx-1 mt-4 transition-all',
+                            isPast ? 'bg-gray-900' : 'bg-gray-200',
+                          ].join(' ')}
+                        />
+                      )}
                     </div>
-                    {i < WORKFLOW_STEPS.length - 1 && (
-                      <div
-                        className={[
-                          'flex-1 h-0.5 mx-2 mb-6 transition-all',
-                          isPast ? 'bg-gray-900' : 'bg-gray-200',
-                        ].join(' ')}
-                      />
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* STATUS QUICK ACTIONS */}
         <div className="mt-6 flex flex-wrap gap-2 items-center pt-6 border-t border-gray-100">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-500 mr-2">Move to:</span>
-          {STATUS_OPTIONS.filter(s => s !== request.status).map((s) => {
-            const ss = STATUS_STYLES[s];
-            return (
-              <button
-                key={s}
-                onClick={() => updateStatus(s)}
-                disabled={saving}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${ss.pill} hover:scale-[1.02] transition-all disabled:opacity-50`}
-              >
-                {s.replace(/_/g, ' ')}
-              </button>
-            );
-          })}
+          {STATUS_OPTIONS
+            .filter(s => s !== request.status && s !== 'CANCELLED')
+            .map((s) => {
+              const ss = STATUS_STYLES[s];
+              return (
+                <button
+                  key={s}
+                  onClick={() => updateStatus(s)}
+                  disabled={saving}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${ss.pill} hover:scale-[1.02] transition-all disabled:opacity-50`}
+                >
+                  {s.replace(/_/g, ' ')}
+                </button>
+              );
+            })}
+          {/* CANCELLED is a destructive terminal action — separated and confirmed */}
+          {request.status !== 'CANCELLED' && (
+            <button
+              onClick={() => {
+                const msg = isPaid
+                  ? 'Cancel this request? The customer has already paid — remember to issue a refund through the payment gateway.'
+                  : 'Cancel this request?';
+                if (confirm(msg)) updateStatus('CANCELLED');
+              }}
+              disabled={saving}
+              className="ml-auto px-3 py-1.5 rounded-lg text-xs font-bold border bg-red-50 text-red-700 border-red-200 hover:bg-red-100 transition-all disabled:opacity-50 inline-flex items-center gap-1.5"
+              title={isPaid ? 'Customer has paid — refund will be required' : 'Cancel this request'}
+            >
+              <i className="ri-close-circle-line" />
+              Cancel{isPaid ? ' & Refund' : ''}
+            </button>
+          )}
           {saving && (
             <span className="text-xs text-gray-400 inline-flex items-center gap-1.5">
               <i className="ri-loader-4-line animate-spin" /> Saving…
