@@ -10,7 +10,7 @@ type PayInfo = {
   payment_status: string;
   total_final: number | null;
   total_est: number | null;
-  commission: number;
+  markup: number;
   delivery_fee: number;
   contact_name: string | null;
   contact_email: string | null;
@@ -203,8 +203,8 @@ export default function ShopperPayPage({ params }: { params: Promise<{ id: strin
               <span>GH₵{itemsSubtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-gray-600">
-              <span>Commission</span>
-              <span>GH₵{info.commission.toFixed(2)}</span>
+              <span>Markup</span>
+              <span>GH₵{info.markup.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Delivery</span>

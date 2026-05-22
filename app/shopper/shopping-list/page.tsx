@@ -58,8 +58,8 @@ export default function ShoppingList() {
   };
 
   const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.estimatedPrice) || 0), 0);
-  const commission = subtotal * 0.05;
-  const total = subtotal + commission;
+  const markup = subtotal * 0.05;
+  const total = subtotal + markup;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +88,7 @@ export default function ShoppingList() {
           preferredTime,
           notes,
           subtotalEst: subtotal,
-          commission: commission,
+          markup: markup,
           totalEst: total
         })
       });
@@ -261,8 +261,8 @@ export default function ShoppingList() {
                     <span className="font-medium">GH₵{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>Commission (5%)</span>
-                    <span className="font-medium">GH₵{commission.toFixed(2)}</span>
+                    <span>Markup (5%)</span>
+                    <span className="font-medium">GH₵{markup.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600 text-sm italic">
                     <span>Delivery Fee</span>

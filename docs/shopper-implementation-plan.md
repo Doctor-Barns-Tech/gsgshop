@@ -13,7 +13,7 @@ The goal is to add a new "My Personal Shopper by GSG" storefront to the existing
 ## 3. Database Schema
 We will create new tables for the Personal Shopper feature to avoid cluttering the existing `orders` table, as the workflow is fundamentally different (request-based, estimated prices, admin adjustments).
 
-- `shopper_requests`: Stores the main request details (user_id, status, subtotal_est, commission, sourcing_fee, delivery_fee_est, total_est, delivery_address, contact info).
+- `shopper_requests`: Stores the main request details (user_id, status, subtotal_est, markup, sourcing_fee, delivery_fee_est, total_est, delivery_address, contact info).
 - `shopper_request_items`: Stores the individual items requested (name, qty, remark, estimated_price, source_type).
 - `shopper_attachments`: Stores uploaded prescriptions or reference images.
 - `shopper_status_history`: Tracks status changes over time.

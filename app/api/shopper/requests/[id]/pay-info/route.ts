@@ -14,7 +14,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SELECT_COLUMNS =
-    'id, request_number, total_final, total_est, commission, delivery_fee, payment_status, status, contact_email, contact_name, items:shopper_request_items(id, name_brand, qty_size_range, market_price, estimated_price)';
+    'id, request_number, total_final, total_est, markup, delivery_fee, payment_status, status, contact_email, contact_name, items:shopper_request_items(id, name_brand, qty_size_range, market_price, estimated_price)';
 
 export async function GET(
     _req: Request,
@@ -46,7 +46,7 @@ export async function GET(
         payment_status: data.payment_status,
         total_final: data.total_final !== null ? Number(data.total_final) : null,
         total_est: data.total_est !== null ? Number(data.total_est) : null,
-        commission: Number(data.commission ?? 0),
+        markup: Number(data.markup ?? 0),
         delivery_fee: Number(data.delivery_fee ?? 0),
         contact_email: data.contact_email,
         contact_name: data.contact_name,

@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.shopper_requests (
   user_id            UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   status             shopper_request_status NOT NULL DEFAULT 'SUBMITTED',
   subtotal_est       NUMERIC(10,2) NOT NULL DEFAULT 0,
-  commission         NUMERIC(10,2) NOT NULL DEFAULT 0,
+  markup             NUMERIC(10,2) NOT NULL DEFAULT 0,
   sourcing_fee       NUMERIC(10,2) NOT NULL DEFAULT 0,
   delivery_fee_est   NUMERIC(10,2) NOT NULL DEFAULT 0,
   total_est          NUMERIC(10,2) NOT NULL DEFAULT 0,

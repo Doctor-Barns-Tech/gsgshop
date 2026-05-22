@@ -30,7 +30,7 @@ type ShopperRequest = {
   payment_method: string | null;
   paid_at: string | null;
   subtotal_est: number;
-  commission: number;
+  markup: number;
   delivery_fee: number | null;
   total_est: number;
   total_final: number | null;
@@ -676,8 +676,8 @@ export default function AdminShopperRequestDetail({ params }: { params: Promise<
                 <dd className="font-medium text-gray-700">{fmtGHS(request.subtotal_est)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-gray-500">Est. commission (5%)</dt>
-                <dd className="font-medium text-gray-700">{fmtGHS(request.commission)}</dd>
+                <dt className="text-gray-500">Est. markup (5%)</dt>
+                <dd className="font-medium text-gray-700">{fmtGHS(request.markup)}</dd>
               </div>
               <div className="flex justify-between border-t border-gray-100 pt-2.5">
                 <dt className="text-gray-600 font-medium">Customer estimate</dt>
@@ -694,7 +694,7 @@ export default function AdminShopperRequestDetail({ params }: { params: Promise<
                     <dd className="font-medium text-gray-700">{fmtGHS(marketSubtotal)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">Commission (5%)</dt>
+                    <dt className="text-gray-500">Markup (5%)</dt>
                     <dd className="font-medium text-gray-700">{fmtGHS(marketSubtotal * 0.05)}</dd>
                   </div>
                   <div className="flex justify-between">

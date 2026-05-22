@@ -17,7 +17,7 @@ import { sendShopperPaymentLink } from '@/lib/notifications';
  *   }
  *
  * If totalFinal is not supplied we compute it from:
- *   sum(market_price ?? estimated_price) + commission(5%) + delivery_fee
+ *   sum(market_price ?? estimated_price) + markup(5%) + delivery_fee
  *
  * Always responds with the updated row (or the existing one if no changes).
  */
@@ -45,7 +45,7 @@ export async function PATCH(
 
     const { data: req0, error: req0Err } = await supabaseAdmin
         .from('shopper_requests')
-        .select('id, request_number, status, payment_status, commission, delivery_fee, total_est, total_final, contact_email, contact_phone, contact_name, items:shopper_request_items(id, estimated_price, market_price)')
+        .select('id, request_number, status, payment_status, markup, delivery_fee, total_est, total_final, contact_email, contact_phone, contact_name, items:shopper_request_items(id, estimated_price, market_price)')
         .eq('id', id)
         .single();
 
@@ -66,18 +66,18 @@ export async function PATCH(
         return sum + (Number.isFinite(price) ? price : 0);
     }, 0);
 
-    // Re-derive commission off the (possibly updated) subtotal so we don't
-    // ship an outdated commission number from when the customer first
-    // submitted the list. Falls back to row commission if subtotal is zero.
-    const commission = itemsSubtotal > 0
+    // Re-derive markup off the (possibly updated) subtotal so we don't ship
+    // an outdated markup number from when the customer first submitted the
+    // list. Falls back to the row's stored markup if subtotal is zero.
+    const markup = itemsSubtotal > 0
         ? Math.round(itemsSubtotal * 0.05 * 100) / 100
-        : Number(req0.commission ?? 0);
+        : Number(req0.markup ?? 0);
 
     const deliveryFee = explicitDeliveryFee !== null
         ? explicitDeliveryFee
         : Number(req0.delivery_fee ?? 0);
 
-    const computed = Math.round((itemsSubtotal + commission + deliveryFee) * 100) / 100;
+    const computed = Math.round((itemsSubtotal + markup + deliveryFee) * 100) / 100;
     const totalFinal = explicitTotalFinal !== null ? explicitTotalFinal : computed;
 
     if (totalFinal <= 0) {
@@ -85,7 +85,7 @@ export async function PATCH(
     }
 
     const update: Record<string, any> = {
-        commission,
+        markup,
         delivery_fee: deliveryFee,
         total_final: totalFinal,
         updated_at: new Date().toISOString(),
@@ -100,7 +100,7 @@ export async function PATCH(
         .from('shopper_requests')
         .update(update)
         .eq('id', id)
-        .select('id, request_number, status, payment_status, commission, delivery_fee, total_est, total_final, contact_email, contact_phone, contact_name')
+        .select('id, request_number, status, payment_status, markup, delivery_fee, total_est, total_final, contact_email, contact_phone, contact_name')
         .single();
 
     if (updateErr || !updated) {

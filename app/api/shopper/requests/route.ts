@@ -5,11 +5,15 @@ import { verifyAuth } from '@/lib/auth';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { 
-      items, contactName, contactPhone, contactEmail, 
-      deliveryAddress, preferredTime, notes, 
-      subtotalEst, commission, totalEst 
+    const {
+      items, contactName, contactPhone, contactEmail,
+      deliveryAddress, preferredTime, notes,
+      subtotalEst, totalEst,
     } = body;
+    // "markup" is the canonical name; we still accept "commission" so any
+    // stale client bundle out in the wild keeps working until everyone
+    // has re-fetched the new shopping-list page.
+    const markup = body.markup ?? body.commission;
 
     // Optional auth
     const authResult = await verifyAuth(request);
@@ -30,7 +34,7 @@ export async function POST(request: Request) {
         user_id: userId,
         status: 'SUBMITTED',
         subtotal_est: subtotalEst,
-        commission: commission,
+        markup: markup,
         total_est: totalEst,
         total_final: totalEst,
         delivery_fee: 0,

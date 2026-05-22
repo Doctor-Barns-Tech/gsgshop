@@ -21,7 +21,7 @@ const STEPS = [
     title: 'Transparent Fees',
     icon: 'ri-percent-line',
     content:
-      'We charge 5% commission or less on item subtotal. Delivery fee is based on distance. If a rare sourcing fee is needed, we always agree with you first.',
+      'We charge a 5% markup or less on item subtotal. Delivery fee is based on distance. If a rare sourcing fee is needed, we always agree with you first.',
   },
   {
     id: '04',

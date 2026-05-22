@@ -24,7 +24,7 @@ Creates a new personal shopper request.
   "preferredTime": "Tomorrow morning",
   "notes": "Call upon arrival",
   "subtotalEst": 90.00,
-  "commission": 4.50,
+  "markup": 4.50,
   "totalEst": 94.50
 }
 ```

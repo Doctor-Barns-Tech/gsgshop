@@ -2,11 +2,11 @@ export default function ShopperFAQs() {
   const faqs = [
     {
       q: "How does the Personal Shopper service work?",
-      a: "Simply create a shopping list on our website with the items you need and your estimated prices. We will review it, source the items at market price, and deliver them to your door. You pay a 5% commission or less on the subtotal."
+      a: "Simply create a shopping list on our website with the items you need and your estimated prices. We will review it, source the items at market price, and deliver them to your door. You pay a 5% markup or less on the subtotal."
     },
     {
-      q: "What is the commission fee?",
-      a: "We charge a flat 5% commission or less on the total cost of the items we purchase for you."
+      q: "What is the markup fee?",
+      a: "We charge a flat 5% markup or less on the total cost of the items we purchase for you."
     },
     {
       q: "How is the delivery fee calculated?",
@@ -14,7 +14,7 @@ export default function ShopperFAQs() {
     },
     {
       q: "Are there any hidden fees?",
-      a: "No. You pay the exact market price for the goods, plus our 5% commission or less, and the delivery fee. In rare cases, a sourcing fee may apply for hard-to-find items, but we will always ask for your approval first."
+      a: "No. You pay the exact market price for the goods, plus our 5% markup or less, and the delivery fee. In rare cases, a sourcing fee may apply for hard-to-find items, but we will always ask for your approval first."
     },
     {
       q: "What if the actual market price is higher than my estimate?",
