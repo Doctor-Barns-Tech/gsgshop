@@ -12,6 +12,10 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  *
  * No PII beyond what the customer already entered.
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SELECT_COLUMNS =
+    'id, request_number, total_final, total_est, commission, delivery_fee, payment_status, status, contact_email, contact_name, items:shopper_request_items(id, name_brand, qty_size_range, market_price, estimated_price)';
+
 export async function GET(
     _req: Request,
     context: { params: Promise<{ id: string }> },
@@ -19,11 +23,17 @@ export async function GET(
     const { id } = await context.params;
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
+    // We accept either a UUID (the row's primary key, used in /pay/[id]) OR an
+    // SR-... request_number (echoed back in the gateway redirect URL).
+    // We cannot use .or() with both filters at once because PostgREST will try
+    // to cast the SR-... value to uuid for the id.eq.<...> comparison and 500.
+    const filterColumn = UUID_RE.test(id) ? 'id' : 'request_number';
+
     const { data, error } = await supabaseAdmin
         .from('shopper_requests')
-        .select('id, request_number, total_final, total_est, commission, delivery_fee, payment_status, status, contact_email, contact_name, items:shopper_request_items(id, name_brand, qty_size_range, market_price, estimated_price)')
-        .or(`id.eq.${id},request_number.eq.${id}`)
-        .single();
+        .select(SELECT_COLUMNS)
+        .eq(filterColumn, id)
+        .maybeSingle();
 
     if (error || !data) {
         return NextResponse.json({ error: 'Request not found' }, { status: 404 });

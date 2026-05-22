@@ -57,11 +57,15 @@ export async function POST(request: Request) {
             }
 
             const orderRef = payload.order_number || payload.id;
+            // PostgREST can't cast a non-UUID string to uuid for id.eq.<...>,
+            // so we explicitly pick the right column instead of using .or().
+            const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            const filterColumn = UUID_RE.test(orderRef) ? 'id' : 'order_number';
             const { data: order, error: orderError } = await supabaseAdmin
                 .from('orders')
                 .select('id, order_number, created_at')
-                .or(`order_number.eq.${orderRef},id.eq.${orderRef}`)
-                .single();
+                .eq(filterColumn, orderRef)
+                .maybeSingle();
 
             if (orderError || !order) {
                 return NextResponse.json({ error: 'Order not found' }, { status: 404 });

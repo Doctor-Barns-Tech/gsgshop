@@ -68,11 +68,12 @@ export async function POST(req: Request) {
         const uniqueRef = `${orderRef}-R${Date.now()}`;
 
         // Shopper-request payments redirect back into the shopper subdomain so
-        // branding stays consistent for that customer.
+        // branding stays consistent for that customer. The &provider= hint
+        // lets the landing page pick the right verify endpoint without a guess.
         const redirectPath =
             target.kind === 'shopper_request'
-                ? `/shopper/payment-complete?ref=${orderRef}&payment_success=true`
-                : `/order-success?order=${orderRef}&payment_success=true`;
+                ? `/shopper/payment-complete?ref=${orderRef}&payment_success=true&provider=moolre`
+                : `/order-success?order=${orderRef}&payment_success=true&provider=moolre`;
 
         const payload = {
             type: 1,

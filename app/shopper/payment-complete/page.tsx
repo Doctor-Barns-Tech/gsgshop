@@ -50,6 +50,31 @@ function ShopperPaymentCompleteContent() {
           if (paymentSuccess === 'true' && data.payment_status !== 'paid') {
             await verifyPayment(data.request_number);
           }
+        } else if (paymentSuccess === 'true' && ref.startsWith('SR-')) {
+          // Pay-info couldn't load (transient DB error, stale CDN, etc.) but
+          // the gateway clearly told us the user just paid. Don't strand the
+          // payment — fire verification directly with the SR- ref we have.
+          await verifyPayment(ref);
+          // Try one more pay-info read so we can render real numbers if
+          // verification succeeded.
+          try {
+            const finalRes = await fetch(`/api/shopper/requests/${encodeURIComponent(ref)}/pay-info`);
+            if (finalRes.ok) {
+              const finalData = await finalRes.json();
+              if (!cancelled) {
+                setRequest({
+                  id: finalData.id,
+                  request_number: finalData.request_number,
+                  status: finalData.status,
+                  payment_status: finalData.payment_status,
+                  total_final: finalData.total_final,
+                  contact_name: finalData.contact_name,
+                });
+              }
+            }
+          } catch {
+            /* ignore */
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);
