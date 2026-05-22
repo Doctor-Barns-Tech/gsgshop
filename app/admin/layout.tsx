@@ -265,9 +265,11 @@ export default function AdminLayout({
         `}
       >
         <div className="h-full px-4 py-6 overflow-y-auto">
-          <Link href="/admin" className="flex items-center mb-8 px-2 cursor-pointer">
-            <span className="text-xl font-['Pacifico'] text-blue-700">GSG</span>
-            <span className="ml-3 text-sm font-semibold text-gray-500">ADMIN</span>
+          <Link href="/admin" className="flex items-center gap-3 mb-8 px-2 cursor-pointer">
+            <img src="/fgfg.png" alt="GSG" className="h-10 w-auto object-contain" />
+            <span className="text-sm font-semibold tracking-wide text-gray-500 border-l border-gray-200 pl-3">
+              ADMIN
+            </span>
           </Link>
 
           <nav className="space-y-1">
